@@ -1,0 +1,35 @@
+{
+  "name": "local-http-mock",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "node tests/app.js"
+  },
+  "keywords": [
+    "mock"
+  ],
+  "author": "593233820@qq.com",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "bluebird": "^3.5.4",
+    "escape-string-regexp": "^2.0.0",
+    "http-proxy": "^1.17.0",
+    "is-ip": "^3.0.0",
+    "is-uuid": "^1.0.2",
+    "isemail": "^3.2.0",
+    "json5": "^2.1.0",
+    "mockjs": "^1.0.1-beta3",
+    "ws": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/bluebird": "^3.5.26",
+    "@types/express": "^4.16.1",
+    "express": "^4.17.0",
+    "jest": "^24.8.0",
+    "rimraf": "^2.6.3",
+    "uuid": "^3.3.2"
+  }
+}

@@ -1,0 +1,2 @@
+use ajv library check mockrc.json
+use devServer.ws or inject ws handler by hack devServer.after ?
