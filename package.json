@@ -5,7 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "test": "node tests/app.js"
+    "test": "npx jest tests/.*test.js"
   },
   "keywords": [
     "mock"
@@ -16,7 +16,6 @@
     "axios": "^0.18.0",
     "bluebird": "^3.5.4",
     "escape-string-regexp": "^2.0.0",
-    "http-proxy": "^1.17.0",
     "is-ip": "^3.0.0",
     "is-uuid": "^1.0.2",
     "isemail": "^3.2.0",

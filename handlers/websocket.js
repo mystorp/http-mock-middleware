@@ -4,13 +4,13 @@ const WebSocket = require("ws");
 const MockFileManager = require("../MockFileManager");
 
 module.exports = function(options, rules){
+    let {server, websocket} = options;
     let websocketServers = {};
     rules.forEach(rule => {
         let {url, rootDirectory} = rule;
         websocketServers[url] = new WebSocket.Server({ noServer: true });
         websocketServers[url].on("connection", function(ws){
-            // TODO: mock file, response
-            ws.on("message", onMessageHandler.bind(ws, options));
+            ws.on("message", onMessageHandler.bind(ws, websocket, rootDirectory));
         });
     });
     server.on("upgrade", function(request, socket, head){
@@ -26,15 +26,18 @@ module.exports = function(options, rules){
     });
 };
 
-function onMessageHandler(options, event) {
+function onMessageHandler(options, rootDirectory, msg) {
     let ws = this;
-    let localUrl = options.decodeMessage(event.data);
+    let localUrl = options.decodeMessage(msg);
+    if(localUrl.charAt(0) !== "/") {
+        localUrl = "/" + localUrl;
+    }
     MockFileManager.find("", localUrl, rootDirectory).then(file => {
         if(/\.json5?$/i.test(file)) {
             MockFileManager.mock(file).then(data => {
                 let delay = data["#delay#"];
                 delete data["#delay#"];
-                let msg = options.decodeMessage(data);
+                let msg = options.encodeMessage(data);
                 setTimeout(() => ws.send(msg), delay || 0);
             });
         } else {
@@ -42,7 +45,7 @@ function onMessageHandler(options, event) {
                 if(error) {
                     return console.error(`read file ${file} error: ${error.message}`);
                 }
-                ws.send(options.decodeMessage(data));
+                ws.send(options.encodeMessage(data));
             });
         }
     });

@@ -5,7 +5,6 @@ const Mockjs = require("mockjs");
 const uuid = require("uuid");
 const rimraf = require("rimraf");
 
-// generate data in memory
 afterAll(function(){
     rimraf.sync("./tests/.data");
 });
