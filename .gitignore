@@ -31,3 +31,4 @@ node_modules
 dist
 .idea
 mockrc.json
+tests/.data

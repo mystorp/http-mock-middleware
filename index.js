@@ -16,7 +16,7 @@ let middleware = module.exports = function(middlewareOptions){
     return function(req, resp, next){
         let proxy = req.get("X-Mock-Proxy");
         if(proxy) {
-            handleProxy(req, resp, next);
+            handleProxy(req, resp, middlewareOptions.proxy, next);
         } else {
             resp.set({
                 "Access-Control-Allow-Origin": req.get("origin") || "*",
