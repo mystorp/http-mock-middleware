@@ -1,11 +1,10 @@
 const fs = require("fs");
 const url = require("url");
 const path = require("path");
-const http = require("http");
-const https = require("https");
+const axios = require("axios");
 const Promise = require("bluebird");
-const statAsync = Promise.promisify(fs.stat);
-const renameAsync = Promise.promisify(fs.rename);
+const { rotateFile } = require("../utils");
+const mkdirAsync = Promise.promisify(require("mkdirp"));
 /**
  * redirect request to `X-Mock-Proxy`
  */
@@ -15,34 +14,30 @@ module.exports = function(req, resp, options, next){
     let headers = req.headers;
     headers.host = urlParts.host;
     headers["connection"] = "close";
+    delete headers["x-mock-proxy"];
     options = Object.assign({
         autoSave: false,
         saveDirectory: "",
         overrideSameFile: "rename" // override
     }, options);
-    const mod = urlParts.protocol === "https:" ? https : http;
-    let proxyRequest = mod.request({
-        hostname: urlParts.hostname,
-        port: urlParts.port,
-        path: urlParts.path,
-        method: req.method,
+    axios.request({
+        method: req.method.toLowerCase(),
+        url: newUrl,
+        data: req,
         headers: headers
-    }, function(response){
-		resp.writeHead(response.statusCode, response.headers);
+    }).then(function(response){
+        resp.writeHead(response.status, response.headers);
         if(canAutoSave(options)) {
             proxy2local(req, resp, options).then((stream) => {
-                response.pipe(resp);
-                response.pipe(stream);
+                resp.end(response.data);
+                stream.end(response.data);
             });
         } else {
-            response.pipe(resp);
+            resp.end(response.data);
         }
-	});
-	proxyRequest.on('error', function(e){
-		resp.writeHead(500);
-		resp.end(e.message + "\n" + e.stack);
-	});
-	req.pipe(proxyRequest);
+    }, function(err){
+        // TODO:
+    });
 };
 
 function canAutoSave(options) {
@@ -51,32 +46,6 @@ function canAutoSave(options) {
     return yes;
 }
 
-function nextRotateFile(file) {
-    let dir = path.dirname(file);
-    let name = path.basename(file);
-    let re = /\.\d+$/;
-    let rotateName;
-    if(re.test(name)) {
-        let num = name.split(".").pop() * 1 + 1;
-        rotateName = name.replace(re, `.${num}`);
-    } else {
-        rotateName = `${name}.1`;
-    }
-    return dir + path.sep + rotateName;
-}
-/**
- * file.json => file.json.1
- * file.json.1 => file.json.2
- * @param {string} file 
- */
-function rotate(file) {
-    let nextFile = nextRotateFile(file);
-    return statAsync(file).then((s) => {
-        return rotate(nextFile);
-    }).then(() => {
-        return renameAsync(file, nextFile);
-    }).catch(() => 0);
-}
 
 function proxy2local(request, response, options) {
     let url = request.url;
@@ -90,9 +59,12 @@ function proxy2local(request, response, options) {
     if(/json/i.test(response.get("content-type"))) {
         filepath += ".json";
     }
+    const openstream = (file) => {
+        return mkdirAsync(path.dirname(file)).then(() => fs.createWriteStream(file));
+    }
     if(options.overrideSameFile === "rename") {
-        return rotate(filepath).then(() => fs.createWriteStream(filepath));
+        return rotateFile(filepath).then(() => openstream(filepath));
     } else {
-        return Promise.resolve(fs.createWriteStream(filepath));
+        return openstream(filepath);
     }
 }

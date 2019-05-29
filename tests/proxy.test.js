@@ -1,5 +1,4 @@
 const fs = require("fs");
-const path = require("path");
 const express = require("express");
 const axios = require("axios");
 const localHttpMock = require("../");
@@ -17,7 +16,7 @@ afterAll(function(){
     fs.unlinkSync("mockrc.json");
 });
 
-describe("http mock test", function(){
+describe("proxy mock test", function(){
     let currentApp, currentServer, currentBaseUrl;
     beforeEach(function(done){
         currentApp = express();
@@ -42,11 +41,3 @@ describe("http mock test", function(){
         }).then(resp => resp.data)).resolves.toMatch(/百度一下，你就知道/);
     });
 });
-
-function mockFile(file, content) {
-    if(file.indexOf(mockDirectoryPrefix) !== 0) {
-        file = mockDirectoryPrefix + file;
-    }
-    fs.mkdirSync(path.dirname(file), {recursive: true});
-    fs.writeFileSync(file, content);
-}

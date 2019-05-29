@@ -1,10 +1,9 @@
 const MockFileManager = require("../MockFileManager");
-const fs = require("fs");
-const path = require("path");
 const rimraf = require("rimraf");
 const isIP = require("is-ip");
 
 const mockDirectoryPrefix = "tests/.data/MockFileManager";
+const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
 
 afterAll(function(){
     rimraf.sync(mockDirectoryPrefix);
@@ -79,12 +78,3 @@ describe("test mock function:", function(){
         ).resolves.toBe(JSON.stringify({json5: "yes"}));
     });
 });
-
-function mockFile(file, content) {
-    if(file.indexOf(mockDirectoryPrefix) !== 0) {
-        file = mockDirectoryPrefix + file;
-    }
-    fs.mkdirSync(path.dirname(file), {recursive: true});
-    fs.writeFileSync(file, content);
-    return path.resolve(file);
-}

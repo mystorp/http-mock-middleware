@@ -1,11 +1,11 @@
 const fs = require("fs");
-const path = require("path");
 const express = require("express");
 const axios = require("axios");
 const localHttpMock = require("../");
 const rimraf = require("rimraf");
 
 const mockDirectoryPrefix = "tests/.data/proxy-autoSave";
+const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
 
 beforeAll(function(){
     fs.writeFileSync("mockrc.json", JSON.stringify({
@@ -13,11 +13,11 @@ beforeAll(function(){
     }));
 });
 afterAll(function(){
-    rimraf.sync(mockDirectoryPrefix);
+    // rimraf.sync(mockDirectoryPrefix);
     fs.unlinkSync("mockrc.json");
 });
 
-describe("http mock test", function(){
+describe("proxy with autoSave mock test", function(){
     let currentApp, currentServer, currentBaseUrl;
     beforeEach(function(done){
         currentApp = express();
@@ -45,28 +45,17 @@ describe("http mock test", function(){
             headers: {
                 "X-Mock-Proxy": "https://npm.taobao.org"
             }
-        }).then(resp => {
-            let content = fs.readFileSync(mockDirectoryPrefix + "/package/local-http-mock", "utf-8");
-            return resp.data === content;
-        })).resolves.toBe(true);
+        }).then(resp => resp.data)).resolves.toBe(fs.readFileSync(mockDirectoryPrefix + "/package/get-local-http-mock", "utf-8"));
     });
     test("rename exists file when save proxy data to local disk", function(){
-        mockFile("/package/axios", "test");
+        mockFile("/package/get-axios", "test");
         return expect(axios.get(`${currentBaseUrl}/package/axios`, {
             headers: {
                 "X-Mock-Proxy": "https://npm.taobao.org"
             }
         }).then(resp => {
-            let content = fs.readFileSync(mockDirectoryPrefix + "/package/axios.1", "utf-8");
-            return "test" === content && fs.existsSync(mockDirectoryPrefix + "/package/axios");
+            let content = fs.readFileSync(mockDirectoryPrefix + "/package/get-axios.1", "utf-8");
+            return "test" === content && fs.existsSync(mockDirectoryPrefix + "/package/get-axios");
         })).resolves.toBe(true);
     });
 });
-
-function mockFile(file, content) {
-    if(file.indexOf(mockDirectoryPrefix) !== 0) {
-        file = mockDirectoryPrefix + file;
-    }
-    fs.mkdirSync(path.dirname(file), {recursive: true});
-    fs.writeFileSync(file, content);
-}

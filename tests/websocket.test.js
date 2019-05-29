@@ -1,11 +1,11 @@
 const fs = require("fs");
-const path = require("path");
 const express = require("express");
 const localHttpMock = require("../");
 const WebSocket = require("ws");
 const rimraf = require("rimraf");
 
 const mockDirectoryPrefix = "tests/.data/websocket";
+const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
 
 beforeAll(function(){
     fs.writeFileSync("mockrc.json", JSON.stringify({
@@ -64,11 +64,3 @@ describe("websocket mock test", function(){
         });
     });
 });
-
-function mockFile(file, content) {
-    if(file.indexOf(mockDirectoryPrefix) !== 0) {
-        file = mockDirectoryPrefix + file;
-    }
-    fs.mkdirSync(path.dirname(file), {recursive: true});
-    fs.writeFileSync(file, content);
-}

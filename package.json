@@ -5,13 +5,16 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "test": "npx jest tests/.*test.js"
+    "test": "npx jest -i tests/.*test.js"
   },
   "keywords": [
     "mock"
   ],
   "author": "593233820@qq.com",
   "license": "ISC",
+  "jest": {
+    "testEnvironment": "node"
+  },
   "dependencies": {
     "axios": "^0.18.0",
     "bluebird": "^3.5.4",
@@ -20,6 +23,7 @@
     "is-uuid": "^1.0.2",
     "isemail": "^3.2.0",
     "json5": "^2.1.0",
+    "mkdirp": "^0.5.1",
     "mockjs": "^1.0.1-beta3",
     "ws": "^7.0.0"
   },
