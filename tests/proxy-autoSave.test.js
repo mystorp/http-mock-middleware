@@ -13,7 +13,7 @@ beforeAll(function(){
     }));
 });
 afterAll(function(){
-    // rimraf.sync(mockDirectoryPrefix);
+    rimraf.sync(mockDirectoryPrefix);
     fs.unlinkSync("mockrc.json");
 });
 
