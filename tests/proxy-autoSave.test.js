@@ -53,7 +53,7 @@ describe("proxy with autoSave mock test", function(){
         }
         return expect(axios.get("/package/local-http-mock", {
             headers: {
-                "X-Mock-Proxy": "https://npm.taobao.org"
+                "X-Mock-Proxy": "https://www.npmjs.com"
             }
         }).then(resp => {
             let proxyData = resp.data;
@@ -65,7 +65,7 @@ describe("proxy with autoSave mock test", function(){
         mockFile("/package/get-axios", "test");
         return expect(axios.get("/package/axios", {
             headers: {
-                "X-Mock-Proxy": "https://npm.taobao.org"
+                "X-Mock-Proxy": "https://www.npmjs.com"
             }
         }).then(resp => {
             let content = fs.readFileSync(mockDirectoryPrefix + "/package/get-axios.1", "utf-8");
