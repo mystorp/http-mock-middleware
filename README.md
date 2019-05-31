@@ -149,12 +149,13 @@ interface MockOptions {
     websocket?: {
         /**
          * 找到并读取完 mock 文件后，数据经过此函数处理后返回给前端页面
-         * 当 mock 文件是 json 时，这个方法收到的是 json 对象
-         * 当 mock 文件是其它文件时，这个方法收到的是 Buffer 对象
+         * 当查找或读取文件发生错误时，第一个参数指定了具体的错误信息
+         * 当 mock 文件是 json 时，第二个参数收到的是 json 对象
+         * 当 mock 文件时其它文件时，第二个参数收到的是 Buffer 对象
          * 注意：由于 `websocket.send()` 方法仅支持发送 string, Buffer 等
          * 因此你有必要处理好返回的数据
          */
-        encodeMessage(msg: Buffer|Object): any;
+        encodeMessage(error: Error, msg: Buffer|Object): any;
         /**
          * 收到来自前端页面的消息后，数据经过此函数处理并返回对应的 url,
          * local-http-mock 将此 url 映射为本地 mock 文件
