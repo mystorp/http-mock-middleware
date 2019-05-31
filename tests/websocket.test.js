@@ -32,11 +32,9 @@ describe("websocket mock test", function(){
                 websocket: {
                     // send base64
                     encodeMessage: function(error, msg){
-                        debugger;
                         if(error) {
                             msg = Buffer.from("Error: " + error.message);
                         } else if(!(msg instanceof Buffer)) {
-                            console.log(msg.type);
                             msg = Buffer.from(JSON.stringify(msg));
                         }
                         return msg.toString("base64");
@@ -93,10 +91,7 @@ describe("websocket mock test", function(){
             socket.send(JSON.stringify({type: "file", method: "my"}));
         });
         socket.on("message", function(e){
-            if(e instanceof Buffer) {
-                e = e.toString();
-            }
-            expect(Buffer.from(e, "base64")).toMatch(/^Error: /);
+            expect(Buffer.from(e, "base64").toString()).toMatch(/^Error: /);
             socket.close();
             done();
         });

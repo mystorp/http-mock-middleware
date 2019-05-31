@@ -40,7 +40,6 @@ function onMessageHandler(options, rootDirectory, msg) {
                 let msg = options.encodeMessage(null, data);
                 setTimeout(() => ws.send(msg), delay || 0);
             }, function(error){
-                console.log("parse json error:", error.message);
                 let msg = options.encodeMessage(error);
                 ws.send(msg);
             });
