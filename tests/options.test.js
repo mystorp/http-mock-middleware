@@ -15,13 +15,12 @@ describe("test options", function(){
         if(fs.existsSync("mockrc.json")) {
             fs.unlinkSync("mockrc.json");
         }
-        let json = JSON.parse(fs.readFileSync("package.json", "utf-8"));
+        let packageText = fs.readFileSync("package.json", "utf-8");
+        let json = JSON.parse(packageText);
         json.mock = 31;
         fs.writeFileSync("package.json", JSON.stringify(json, null, 2));
         expect(load).toThrow("package.json's mock field must be object");
-        // TODO: remove this ugly code
-        delete json.mock;
-        fs.writeFileSync("package.json", JSON.stringify(json, null, 2));
+        fs.writeFileSync("package.json", packageText);
     });
     test("options must not be {}", function(){
         mockFile("", "mockrc.json", "{}");

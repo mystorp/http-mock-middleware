@@ -1,5 +1,10 @@
 # local-http-mock
-这是又一个提供给前端使用的 http mock 库。原理其实很简单：前端开发的过程中，启动一个 http 服务器，这个服务器接收来自前端页面的 ajax 请求，并将请求映射为本地 json 文件，然后返回 json 文件的内容给前端页面。这种开发方式可以让前端开发完全的自给自足而不需要依赖后端。不同于其它类似的项目，我们尝试提供更多的功能：
+
+[![Build Status](https://travis-ci.com/mystorp/local-http-mock.svg?branch=master)](https://travis-ci.com/mystorp/local-http-mock)
+
+这是又一个提供给前端使用的 http mock 库。
+
+原理其实很简单：前端开发的过程中，启动一个 http 服务器，这个服务器接收来自前端页面的 ajax 请求，并将请求映射为本地 json 文件，然后返回 json 文件的内容给前端页面。这种开发方式可以让前端开发完全的自给自足而不需要依赖后端。不同于其它类似的项目，我们尝试提供更多的功能：
 
 _注意：上面提到的“本地 json 文件”，代码里面称为假数据文件或者 mock 文件。_
 
@@ -72,11 +77,12 @@ local-http-mock 允许对整数做特殊处理，像这样：`[number]`。如果
 .data/groups
 .data/groups/23 => .data/groups/[number]
 .data/groups/23/user
-.data/groups/23/user/11 => .data/groups/[number]/user/[number]
+.data/groups/23/user/11 => .data/groups/23/user/[number]
 ```
 `=>` 表示如果左边的 url 路径匹配失败，则尝试右边的 url 路径。可以看到，这种方式通过对 url 中的某些部分模糊化，达到了通用匹配的目的。
 
 local-http-mock 支持下面的模糊匹配：
+
 |模式|示例|
 |-|-|
 |`[number]`|1, 32, 3232|
@@ -84,7 +90,7 @@ local-http-mock 支持下面的模糊匹配：
 |`[email]`|xx@yy.com|
 |`[uuid]`|45745c60-7b1a-11e8-9c9c-2d42b21b1a3e|
 
-如果请求 url 里面的目录部分全部匹配成功，则开始匹配文件名部分。匹配文件名时首先将目录下面所有的文件都列出来，然后使用下面的格式进行匹配：
+一个 url 里面可以有任意多个模糊匹配，如果请求 url 里面的目录部分全部匹配成功，则开始匹配文件名部分。匹配文件名时首先将目录下面所有的文件都列出来，然后使用下面的格式进行匹配：
 ```
 <method>-<filename><.ext>
 ```
@@ -113,31 +119,23 @@ localHttpMock({
 websocket 收到 onmessage 事件并将收到的数据解析为 url 后，剩下的过程就和 http 一致了。
 
 ### API
-local-http-mock 导出为一个 express middleware，因此你可以很容易的集成到其它基于 express 的服务。比如：
-* 集成 express:
-```javascript
-const http = require("http");
-const express = require("express");
-const app = express();
-const server = http.createServer();
-const localHttpMock = require("local-http-mock");
-app.use(localHttpMock());
-server.on("request", app);
-server.listen(8080);
-```
-* 集成 webpack-dev-server:
-```javascript
-const localHttpMock = require("local-http-mock");
-// webpack.config.js
-module.exports = {
-    devServer: {
-        after: function(app, devServer){
-            localHttpMock.bindWebpack(app, devServer || this);
-        }
-    }
-}
-```
-调用 `localHttpMock(options)` 或 `localHttpMock.bindWebpack(app, server, options)` 时，最后一个参数指定了初始化选项，所有的选项可以参考下面的 typescript 代码。
+`localHttpMock(options)`
+
+`options` 参考下面的 [`MockOptions`](#mock-options)
+
+返回：兼容 express middleware 的函数，它接收 `(request, response, next)` 3 个参数。
+
+`localHttpMock.bindWebpack(app, devServer, options)` 由于 webpack 有自己的初始化逻辑，所以为 webpack 单独封装了一个函数调用。
+
+`app` [express application object](https://expressjs.com/en/4x/api.html#app). webpack.config.js 里面 [`devServer.before`](https://webpack.js.org/configuration/dev-server#devserverbefore), [`devServer.after`](https://webpack.js.org/configuration/dev-server#devserverafter) 收到的第一个参数就是这里的 `app`.
+
+`devServer` webpack-dev-server 启动时，允许 webpack.config.js 里面 `devServer.before`, `devServer.after` 等获取到 devServer 对象，通常是 this 引用，在较新的版本里面，webpack-dev-server 提供了第二个参数用于获取 devServer
+
+`options` 参考下面的 [`MockOptions`](#mock-options)
+
+无返回
+
+<a name="mock-options"></a>
 ```typescript
 interface MockOptions {
     /**
@@ -185,10 +183,14 @@ interface MockOptions {
     }
 }
 ```
+
 ## local-http-mock 如何支持请求延时，杀掉请求？
 local-http-mock 查找到 mock 文件后，如果文件是 json 或者是 json5 类型，先将其解析为 json 对象，然后在 json 对象中查找特殊的指令，这些指令实现了延时，杀掉请求等功能。下面是一些例子：
 ```
-GET /directive/delay 查找到的文件内容为 {"#delay#": 1000, ...} 则请求延时 1000 毫秒
-GET /directive/kill 查找到的文件内容为 {"#kill#": true, ...} 则杀掉请求，如果同时指定了 `#delay#`, `#delay#` 优先
-GET /directive/code 查找到的文件内容为 {"#code#": 408, ...} 则请求响应码为 408
+GET /directive/delay
+查找到的文件内容为 {"#delay#": 1000, ...} 则请求延时 1000 毫秒
+GET /directive/kill
+查找到的文件内容为 {"#kill#": true, ...} 则杀掉请求，如果同时指定了 `#delay#`, `#delay#` 优先
+GET /directive/code
+查找到的文件内容为 {"#code#": 408, ...} 则请求响应码为 408
 ```
