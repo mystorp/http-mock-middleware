@@ -19,7 +19,7 @@ afterAll(function(){
 
 describe("proxy with autoSave mock test", function(){
     let currentApp, currentServer, currentBaseUrl;
-    beforeEach(function(done){
+    beforeAll(function(done){
         currentApp = express();
         currentApp.use(localHttpMock({
             proxy: {
@@ -28,6 +28,12 @@ describe("proxy with autoSave mock test", function(){
                 overrideSameFile: "rename"
             }
         }));
+        axios.interceptors.request.use(function(config){
+            if(config.url.indexOf("/") === 0) {
+                config.url = currentBaseUrl + config.url;
+            }
+            return config;
+        });
         currentServer = currentApp.listen(function(){
             let addr = currentServer.address();
             currentBaseUrl = "http://127.0.0.1:" + addr.port;
@@ -35,21 +41,29 @@ describe("proxy with autoSave mock test", function(){
         });
     });
     
-    afterEach(function(){
+    afterAll(function(){
         currentServer.close();
         currentApp = currentServer = currentBaseUrl = null;
     });
 
     test("auto save proxy data to local disk", function(){
-        return expect(axios.get(`${currentBaseUrl}/package/local-http-mock`, {
+        let savedFile = mockDirectoryPrefix + "/package/get-local-http-mock";
+        if(fs.existsSync(savedFile)) {
+            fs.unlinkSync(savedFile);
+        }
+        return expect(axios.get("/package/local-http-mock", {
             headers: {
                 "X-Mock-Proxy": "https://npm.taobao.org"
             }
-        }).then(resp => resp.data)).resolves.toBe(fs.readFileSync(mockDirectoryPrefix + "/package/get-local-http-mock", "utf-8"));
+        }).then(resp => {
+            let proxyData = resp.data;
+            let savedData = fs.readFileSync(savedFile, "utf-8");
+            return proxyData === savedData;
+        })).resolves.toBe(true);
     });
     test("rename exists file when save proxy data to local disk", function(){
         mockFile("/package/get-axios", "test");
-        return expect(axios.get(`${currentBaseUrl}/package/axios`, {
+        return expect(axios.get("/package/axios", {
             headers: {
                 "X-Mock-Proxy": "https://npm.taobao.org"
             }

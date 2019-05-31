@@ -11,7 +11,7 @@ beforeAll(function(){
     fs.writeFileSync("mockrc.json", JSON.stringify({
         "/ws": {
             type: "websocket",
-            rootDirectory: mockDirectoryPrefix
+            dir: mockDirectoryPrefix
         }
     }));
 });

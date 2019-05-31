@@ -23,7 +23,9 @@ describe("http mock test", function(){
         currentApp = express();
         currentApp.use(localHttpMock());
         axios.interceptors.request.use(function(config){
-            config.url = currentBaseUrl + config.url;
+            if(config.url.indexOf("/") === 0) {
+                config.url = currentBaseUrl + config.url;
+            }
             return config;
         });
         currentServer = currentApp.listen(function(){
