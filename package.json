@@ -5,7 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "test": "npx jest -i tests/.*test.js"
+    "test": "npx jest -i --coverage --coverageReporters=text-lcov tests/.*test.js | npx coveralls"
   },
   "keywords": [
     "mock"
@@ -30,6 +30,7 @@
   "devDependencies": {
     "@types/bluebird": "^3.5.26",
     "@types/express": "^4.16.1",
+    "coveralls": "^3.0.3",
     "express": "^4.17.0",
     "jest": "^24.8.0",
     "rimraf": "^2.6.3",

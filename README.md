@@ -1,6 +1,7 @@
 # local-http-mock
 
 [![Build Status](https://travis-ci.com/mystorp/local-http-mock.svg?branch=master)](https://travis-ci.com/mystorp/local-http-mock)
+[![Coverage Status](https://coveralls.io/repos/github/mystorp/local-http-mock/badge.svg?branch=master)](https://coveralls.io/github/mystorp/local-http-mock?branch=master)
 
 这是又一个提供给前端使用的 http mock 库。
 
@@ -14,11 +15,11 @@ _注意：上面提到的“本地 json 文件”，代码里面称为假数据�
 * 支持任意文件的 mock
 * 支持任意 http 方法和任意 url 格式
 * 支持请求延时，杀掉请求等
-* 无缝对接 webpack-dev-server express 等
+* 无缝对接 webpack-dev-server, express 等
 
 ## 安装
 ```bash
-npm i --dev local-http-mock
+npm i -D local-http-mock
 ```
 或者
 ```bash
