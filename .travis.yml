@@ -4,3 +4,8 @@ node_js:
 email:
   on_failure: change
   on_success: never
+jobs:
+  include:
+    - stage: Produce Coverage
+      node_js: node
+      script: yarn coveralls
