@@ -31,8 +31,15 @@ describe("websocket mock test", function(){
                 server: currentServer,
                 websocket: {
                     // send base64
-                    encodeMessage: function(msg){
-                        return Buffer.from(msg).toString("base64");
+                    encodeMessage: function(error, msg){
+                        debugger;
+                        if(error) {
+                            msg = Buffer.from("Error: " + error.message);
+                        } else if(!(msg instanceof Buffer)) {
+                            console.log(msg.type);
+                            msg = Buffer.from(JSON.stringify(msg));
+                        }
+                        return msg.toString("base64");
                     },
                     // receive json
                     decodeMessage: function(msg){
@@ -50,12 +57,12 @@ describe("websocket mock test", function(){
         currentApp = currentServer = currentBaseUrl = null;
     });
 
-    test("receive and send message correctly", function(done){
+    test("mock json file will read and parse", function(done){
         let socket = new WebSocket(currentBaseUrl + "/ws");
-        let msg = ("" + Math.random()).substring(2);
+        let msg = JSON.stringify({aa: 32, hello: "world!"});
         socket.on("open", function(){
-            mockFile("/user/get", msg);
-            socket.send(JSON.stringify({type: "user", method: "get"}));
+            mockFile("/file/my.json", msg);
+            socket.send(JSON.stringify({type: "file", method: "my"}));
         });
         socket.on("message", function(e){
             expect(e).toBe(Buffer.from(msg).toString("base64"));
@@ -63,4 +70,64 @@ describe("websocket mock test", function(){
             done();
         });
     });
+    test("mock json file support #delay# directive", function(done){
+        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let msg = JSON.stringify({"#delay#": 1000, hello: "world!"});
+        let start;
+        socket.on("open", function(){
+            mockFile("/file/my.json", msg);
+            start = Date.now();
+            socket.send(JSON.stringify({type: "file", method: "my"}));
+        });
+        socket.on("message", function(e){
+            expect(Date.now() - start).toBeGreaterThan(1000);
+            socket.close();
+            done();
+        });
+    });
+    test("mock invalid json file will throw", function(done){
+        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let msg = "invalid json";
+        socket.on("open", function(){
+            mockFile("/file/my.json", msg);
+            socket.send(JSON.stringify({type: "file", method: "my"}));
+        });
+        socket.on("message", function(e){
+            if(e instanceof Buffer) {
+                e = e.toString();
+            }
+            expect(Buffer.from(e, "base64")).toMatch(/^Error: /);
+            socket.close();
+            done();
+        });
+    });
+    test("mock valid file will work", function(done){
+        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let msg = "valid file";
+        socket.on("open", function(){
+            mockFile("/file/data", msg);
+            socket.send(JSON.stringify({type: "file", method: "data"}));
+        });
+        socket.on("message", function(e){
+            expect(e).toBe(Buffer.from(msg).toString("base64"));
+            socket.close();
+            done();
+        });
+    });
+    // TODO: get this done
+    /*
+    test("mock invalid file will throw", function(done){
+        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let msg = "";
+        socket.on("open", function(){
+            mockFile("/file/some/file", msg);
+            socket.send(JSON.stringify({type: "file", method: "some"}));
+        });
+        socket.on("message", function(e){
+            expect(Buffer.from(e, "base64")).toMatch(/^Error: /);
+            socket.close();
+            done();
+        });
+    });
+    */
 });

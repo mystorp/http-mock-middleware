@@ -37,16 +37,21 @@ function onMessageHandler(options, rootDirectory, msg) {
             MockFileManager.mock(file).then(data => {
                 let delay = data["#delay#"];
                 delete data["#delay#"];
-                let msg = options.encodeMessage(data);
+                let msg = options.encodeMessage(null, data);
                 setTimeout(() => ws.send(msg), delay || 0);
+            }, function(error){
+                console.log("parse json error:", error.message);
+                let msg = options.encodeMessage(error);
+                ws.send(msg);
             });
         } else {
             fs.readFile(file, function(error, data){
-                if(error) {
-                    return console.error(`read file ${file} error: ${error.message}`);
-                }
-                ws.send(options.encodeMessage(data));
+                let msg = options.encodeMessage(error, data);
+                ws.send(msg);
             });
         }
+    }, error => {
+        let msg = options.encodeMessage(error);
+        ws.send(msg);
     });
 }
