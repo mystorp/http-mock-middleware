@@ -9,7 +9,9 @@ const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
 
 beforeAll(function(){
     fs.writeFileSync("mockrc.json", JSON.stringify({
-        "/": mockDirectoryPrefix
+        "/mock": mockDirectoryPrefix,
+        "/mock/v2": mockDirectoryPrefix + "/tmp",
+        "/directive": mockDirectoryPrefix
     }));
 });
 afterAll(function(){
@@ -51,6 +53,36 @@ describe("http mock test", function(){
         return expect(
             axios.get("/mock/test.json/").then(resp => JSON.stringify(resp.data))
         ).resolves.toBe("{}");
+    });
+    test("return 404 if url not match any url prefix in mockrc.json", function(){
+        return expect(
+            axios.get("/something").catch(e => Promise.reject(e.message))
+        ).rejects.toMatch(/404/);
+    });
+    test("return 404 if url match any file", function(){
+        return expect(
+            axios.get("/mock/not/exists").catch(e => Promise.reject(e.message))
+        ).rejects.toMatch(/404/);
+    });
+    test("select longest url prefix if url matches multiple url prefix", function(){
+        mockFile("/mock/v2/who.json", "{from: 1}");
+        mockFile("/tmp/mock/v2/who.json", "{from: 2}");
+        return expect(
+            axios.get("/mock/v2/who").then(resp => resp.data.from)
+        ).resolves.toBe(2);
+    });
+    test("invalid json will receive 500", function(){
+        mockFile("/mock/invalid.json", "xx");
+        return expect(
+            axios.get("/mock/invalid").catch(e => Promise.reject(e.response.status))
+        ).rejects.toBe(500);
+    });
+    test("can serve non json mock file", function(){
+        let data = "hello, world!";
+        mockFile("/mock/myfile", data);
+        return expect(
+            axios.get("/mock/myfile").then(resp => resp.data)
+        ).resolves.toBe(data);
     });
     test("delay request 1000ms if mock file has '{\"#delay#\": 1000}'", function(){
         mockFile("/directive/delay.json", '{"#delay#":1000}');

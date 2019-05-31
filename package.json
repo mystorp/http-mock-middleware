@@ -5,8 +5,8 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "test": "npx jest -i",
-    "coveralls": "npx jest -i --coverage && cat ./coverage/lcov.info | npx coveralls && rm -rf ./coverage"
+    "test": "jest -i",
+    "coveralls": "jest -i --coverage && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage"
   },
   "keywords": [
     "mock"

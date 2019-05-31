@@ -11,7 +11,7 @@ module.exports = function(req, resp, rules, next){
     if(matchedRules.length === 0) {
         rootDirectory = null;
     } else {
-        rootDirectory = rules.reduce((a, b) => a.url.length > b.url.length ? a : b).rootDirectory;
+        rootDirectory = matchedRules.reduce((a, b) => a.url.length > b.url.length ? a : b).rootDirectory;
     }
     if(!rootDirectory) {
         return next();
@@ -36,12 +36,14 @@ module.exports = function(req, resp, rules, next){
                     }
                     resp.json(data);
                 }, delay || 0);
+            }, error => {
+                resp.status(500);
+                resp.end("Error: " + error.message);
             });
         } else {
             resp.sendFile(file);
         }
-    }).catch(function(e){
-        console.error(e.message);
+    }, function(e){
         next();
     });
 };
