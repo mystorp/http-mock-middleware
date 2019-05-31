@@ -6,7 +6,7 @@
   "types": "index.d.ts",
   "scripts": {
     "test": "npx jest -i",
-    "coveralls": "npx jest -i --coverage | npx coveralls && rm -rf ./coverage"
+    "coveralls": "npx jest -i --coverage && cat ./coverage/lcov.info | npx coveralls && rm -rf ./coverage"
   },
   "keywords": [
     "mock"
