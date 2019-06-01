@@ -33,11 +33,11 @@ describe("proxy mock test", function(){
         currentApp = currentServer = currentBaseUrl = null;
     });
 
-    test("proxy request to 百度 if has http header 'X-Mock-Proxy: http://www.baidu.com'", function(){
-        return expect(axios.get(`${currentBaseUrl}/`, {
+    test("proxy request to npmjs if has http header 'X-Mock-Proxy: https://www.npmjs.com'", function(){
+        return expect(axios.get(`${currentBaseUrl}/package/local-http-mock`, {
             headers: {
-                "X-Mock-Proxy": "http://www.baidu.com"
+                "X-Mock-Proxy": "https://www.npmjs.com"
             }
-        }).then(resp => resp.data)).resolves.toMatch(/百度一下，你就知道/);
+        }).then(resp => resp.data)).resolves.toMatch(/local-http-mock  -  npm<\/title>/);
     });
 });

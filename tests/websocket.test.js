@@ -109,6 +109,24 @@ describe("websocket mock test", function(){
             done();
         });
     });
+    test("mock file missing will fail", function(done){
+        let socket = new WebSocket(currentBaseUrl + "/ws");
+        socket.on("open", function(){
+            socket.send(JSON.stringify({type: "file", method: "missing"}));
+        });
+        socket.on("message", function(e){
+            expect(Buffer.from(e, "base64").toString()).toMatch(/^Error: /);
+            socket.close();
+            done();
+        });
+    });
+    test("invalid websocket path will fail", function(done){
+        let socket = new WebSocket(currentBaseUrl + "/wsx");
+        socket.on("error", function(e) {
+            expect(e).toBeInstanceOf(Error);
+            done();
+        });
+    });
     // TODO: get this done
     /*
     test("mock invalid file will throw", function(done){
