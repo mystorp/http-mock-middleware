@@ -123,7 +123,7 @@ describe("websocket mock test", function(){
     test("invalid websocket path will fail", function(done){
         let socket = new WebSocket(currentBaseUrl + "/wsx");
         socket.on("error", function(e) {
-            expect(e).toBeInstanceOf(Error);
+            expect(e.message).toBe("socket hang up");
             done();
         });
     });
