@@ -9,6 +9,7 @@ const mkdirAsync = Promise.promisify(require("mkdirp"));
  * redirect request to `X-Mock-Proxy`
  */
 module.exports = function(req, resp, options, next){
+    if(req.url === "/") { return next(); }
     let newUrl = req.get("X-Mock-Proxy") + req.url;
     let urlParts = url.parse(newUrl);
     let headers = req.headers;
@@ -24,13 +25,19 @@ module.exports = function(req, resp, options, next){
         method: req.method.toLowerCase(),
         url: newUrl,
         data: req,
-        headers: headers
+        headers: headers,
+        responseType: "text"
     }).then(function(response){
         resp.writeHead(response.status, response.headers);
         if(canAutoSave(options)) {
-            proxy2local(req, resp, options).then((stream) => {
-                resp.end(response.data);
-                stream.end(response.data);
+            proxy2local(req, response, options).then((stream) => {
+                // axios may still return json
+                let data = response.data;
+                if(typeof data === "object") {
+                    data = JSON.stringify(data);
+                }
+                resp.end(data);
+                stream.end(data);
             });
         } else {
             resp.end(response.data);
@@ -49,14 +56,13 @@ function canAutoSave(options) {
 
 function proxy2local(request, response, options) {
     let url = request.url;
-    if(url === "/") { return; }
     let dirname = path.dirname(url);
     let filename = path.basename(url);
     let filepath = path.resolve(
         options.saveDirectory + dirname,
         request.method.toLowerCase() + "-" + filename
     );
-    if(/json/i.test(response.get("content-type"))) {
+    if(/json/i.test(response.headers["content-type"])) {
         filepath += ".json";
     }
     const openstream = (file) => {
