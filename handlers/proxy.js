@@ -26,24 +26,23 @@ module.exports = function(req, resp, options, next){
         url: newUrl,
         data: req,
         headers: headers,
-        responseType: "text"
+        // disable default transformResponse function
+        transformResponse: [function(data){
+            return data;
+        }]
     }).then(function(response){
+        let data = response.data;
         resp.writeHead(response.status, response.headers);
         if(canAutoSave(options)) {
             proxy2local(req, response, options).then((stream) => {
-                // axios may still return json
-                let data = response.data;
-                if(typeof data === "object") {
-                    data = JSON.stringify(data);
-                }
                 resp.end(data);
                 stream.end(data);
             });
         } else {
-            resp.end(response.data);
+            resp.end(data);
         }
     }, function(err){
-        // TODO:
+        resp.status(500).end(err.message);
     });
 };
 
