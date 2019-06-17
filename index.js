@@ -10,7 +10,7 @@ let middleware = module.exports = function(middlewareOptions){
     let httpRules = mockRules.filter(rule => rule.type !== "websocket");
     let websocketRules = mockRules.filter(rule => rule.type === "websocket");
     middlewareOptions = middlewareOptions || {};
-    if(enableWebsocket(middlewareOptions)) {
+    if(websocketRules.length > 0 && enableWebsocket(middlewareOptions)) {
         require("./handlers/websocket")(middlewareOptions, websocketRules);
     }
     return function(req, resp, next){

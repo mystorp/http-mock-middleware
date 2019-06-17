@@ -1,6 +1,6 @@
 {
   "name": "local-http-mock",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "index.js",
   "types": "index.d.ts",
@@ -35,6 +35,8 @@
     "express": "^4.17.0",
     "jest": "^24.8.0",
     "rimraf": "^2.6.3",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "webpack": "^4.33.0",
+    "webpack-dev-server": "^3.7.1"
   }
 }

@@ -104,4 +104,10 @@ describe("http mock test", function(){
             axios.get("/directive/code").catch(e => e.response.status)
         ).resolves.toBe(408);
     });
+    // TODO: use cors
+    test("OPTIONS method has no response", function(){
+        return expect(
+            axios.get("/directive/kill").then(resp => resp.data)
+        ).resolves.toBe("");
+    });
 });
