@@ -4,6 +4,7 @@ const axios = require("axios");
 const localHttpMock = require("../");
 const rimraf = require("rimraf");
 
+const isCI = process.env.TRAVIS && process.env.CI;
 const mockDirectoryPrefix = "tests/.data/proxy-autoSave";
 const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
 
@@ -53,7 +54,7 @@ describe("proxy with autoSave and rename", function(){
         }
         return expect(axios.get("/package/local-http-mock", {
             headers: {
-                "X-Mock-Proxy": "https://www.npmjs.com"
+                "X-Mock-Proxy": isCI ? "https://www.npmjs.com" : "https://npm.taobao.org"
             }
         }).then(resp => {
             let proxyData = resp.data;
@@ -68,7 +69,7 @@ describe("proxy with autoSave and rename", function(){
         }
         return expect(axios.get("/local-http-mock/1.0.0", {
             headers: {
-                "X-Mock-Proxy": "https://registry.npmjs.com"
+                "X-Mock-Proxy": isCI ? "https://registry.npmjs.com" : "https://registry.npm.taobao.org"
             },
             responseType: "text"
         }).then(resp => {
@@ -84,7 +85,7 @@ describe("proxy with autoSave and rename", function(){
         mockFile("/package/get-axios", "test");
         return expect(axios.get("/package/axios", {
             headers: {
-                "X-Mock-Proxy": "https://www.npmjs.com"
+                "X-Mock-Proxy": isCI ? "https://www.npmjs.com" : "https://npm.taobao.org"
             }
         }).then(resp => {
             let content = fs.readFileSync(mockDirectoryPrefix + "/package/get-axios.1", "utf-8");
@@ -125,7 +126,7 @@ describe("proxy with autoSave and override", function(){
     test("not save proxy data if request url is /", function(){
         return expect(axios.get("/", {
             headers: {
-                "X-Mock-Proxy": "https://www.npmjs.com"
+                "X-Mock-Proxy": isCI ? "https://www.npmjs.com" : "https://npm.taobao.org"
             }
         }).catch(e => Promise.reject(e.response.status))).rejects.toBe(404);
     });
@@ -133,7 +134,7 @@ describe("proxy with autoSave and override", function(){
         mockFile("/package/get-ws", "test");
         return expect(axios.get("/package/ws", {
             headers: {
-                "X-Mock-Proxy": "https://www.npmjs.com"
+                "X-Mock-Proxy": isCI ? "https://www.npmjs.com" : "https://npm.taobao.org"
             }
         }).then(resp => {
             let content = fs.readFileSync(mockDirectoryPrefix + "/package/get-ws", "utf-8");

@@ -4,6 +4,7 @@ const axios = require("axios");
 const localHttpMock = require("../");
 const rimraf = require("rimraf");
 
+const isCI = process.env.TRAVIS && process.env.CI;
 const mockDirectoryPrefix = "tests/.data/proxy";
 
 beforeAll(function(){
@@ -36,8 +37,8 @@ describe("proxy mock test", function(){
     test("proxy request to npmjs if has http header 'X-Mock-Proxy: https://www.npmjs.com'", function(){
         return expect(axios.get(`${currentBaseUrl}/package/local-http-mock`, {
             headers: {
-                "X-Mock-Proxy": "https://www.npmjs.com"
+                "X-Mock-Proxy": isCI ? "https://www.npmjs.com" : "https://npm.taobao.org"
             }
-        }).then(resp => resp.data)).resolves.toMatch(/local-http-mock  -  npm<\/title>/);
+        }).then(resp => resp.data)).resolves.toMatch(isCI ? /local-http-mock  -  npm<\/title>/ : /<title>Package - local-http-mock/);
     });
 });

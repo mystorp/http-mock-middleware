@@ -15,12 +15,15 @@ beforeAll(function(done){
     mockFile("/index.js", "console.log('hello, local-http-mock')");
     let compiler = webpack({
         mode: "development",
+        watch: false,
         entry: path.resolve(mockDirectoryPrefix, "index.js"),
         output: {
-            path: path.resolve(__dirname, "dist")
+            path: path.resolve(mockDirectoryPrefix, "dist")
         }
     });
     devServer = new webpackDevServer(compiler, {
+        lazy: true,
+        filename: "[name].js",
         after: function(app, server){
             localHttpMock.bindWebpack(app, server || this, {
                 websocket: {
@@ -53,8 +56,10 @@ beforeAll(function(done){
 });
 afterAll(function(done){
     rimraf.sync(mockDirectoryPrefix);
-    fs.unlinkSync("mockrc.json");
-    devServer.close(done);
+    if(fs.existsSync("mockrc.json")) {
+        fs.unlinkSync("mockrc.json");
+    }
+    devServer.close(() => done());
 });
 
 describe("webpack test", function(){
