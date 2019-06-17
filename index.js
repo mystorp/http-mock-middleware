@@ -14,12 +14,11 @@ let middleware = module.exports = function(middlewareOptions){
         require("./handlers/websocket")(middlewareOptions, websocketRules);
     }
     return function(req, resp, next){
-        let proxy = req.get("X-Mock-Proxy");
-        if(proxy) {
-            handleProxy(req, resp, middlewareOptions.proxy, next);
-        } else {
+        let origin = req.get("Origin");
+        if(origin) {
+            let hasCookie = !!req.get("Cookie");
             resp.set({
-                "Access-Control-Allow-Origin": req.get("origin") || "*",
+                "Access-Control-Allow-Origin": hasCookie ? origin : "*",
                 "Access-Control-Allow-Credentials": true,
                 "Access-Control-Allow-Methods": "GET, POST, OPTIONS, DELETE, PUT",
                 "Access-Control-Allow-Headers": "Content-Type, X-Mock-Proxy"
@@ -28,6 +27,11 @@ let middleware = module.exports = function(middlewareOptions){
                 resp.status(200);
                 return resp.end();
             }
+        }
+        let proxy = req.get("X-Mock-Proxy");
+        if(proxy) {
+            handleProxy(req, resp, middlewareOptions.proxy, next);
+        } else {
             handleHttp(req, resp, httpRules, next);
         }
     };

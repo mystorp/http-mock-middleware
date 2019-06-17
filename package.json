@@ -6,7 +6,7 @@
   "types": "index.d.ts",
   "scripts": {
     "test": "jest -i",
-    "coveralls": "jest -i --coverage && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage"
+    "coveralls": "jest -i --coverage && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage && rm -rf ./tests/.data"
   },
   "keywords": [
     "mock"

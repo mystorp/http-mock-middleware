@@ -107,7 +107,9 @@ describe("http mock test", function(){
     // TODO: use cors
     test("OPTIONS method has no response", function(){
         return expect(
-            axios.get("/directive/kill").then(resp => resp.data)
+            axios.options("/something", {
+                headers: {"Origin": "http://127.0.0.1"}
+            }).then(resp => resp.data)
         ).resolves.toBe("");
     });
 });
