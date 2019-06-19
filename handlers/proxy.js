@@ -29,7 +29,9 @@ module.exports = function(req, resp, options, next){
         // disable default transformResponse function
         transformResponse: [function(data){
             return data;
-        }]
+        }],
+        // we don't care about the status code
+        validateStatus: () => true
     }).then(function(response){
         let data = response.data;
         resp.writeHead(response.status, response.headers);
