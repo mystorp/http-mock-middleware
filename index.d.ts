@@ -1,4 +1,8 @@
 import { Server } from "http";
+import { RequestHandler, Application } from "express";
+
+export as namespace localHttpMock;
+export = localHttpMock;
 
 interface MockOptions {
     /**
@@ -43,6 +47,12 @@ interface MockOptions {
          * 此选项指定将数据保存为本地 mock 文件时，如果要保存的文件已经存在将如何处理
          * 目前支持的选项为 "rename", "override"
          */
-        overrideSameFile: "rename"
+        overrideSameFile: "rename" | "override"
     }
+}
+
+declare function localHttpMock(options: MockOptions): RequestHandler;
+
+declare namespace localHttpMock {
+    export function bindWebpack (app: Application, server: Server, options: MockOptions);
 }
