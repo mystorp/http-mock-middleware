@@ -3,8 +3,8 @@ const path = require("path");
 const escapeStringRegexp = require('escape-string-regexp');
 const Promise = require("bluebird");
 const json5 = require("json5");
-const Mockjs = require("mockjs");
 const MagicNameMatcher = require("./MagicNameMatcher");
+const parseDirectives = require("./directives").parse;
 
 const readdirAsync = Promise.promisify(fs.readdir);
 const statAsync = Promise.promisify(fs.stat);
@@ -90,10 +90,32 @@ class MockFileFinder {
             });
         });
     }
-    mock(file) {
-        return readFileAsync(file, "utf-8").then((text) => {
-            return json5.parse(text);
-        }).then(json => Mockjs.mock(json));
+    mock(file, context) {
+        if(!context) {
+            context = {};
+        }
+        context.mockFile = file;
+        return readFileAsync(file, "utf-8").then((buf) => {
+            if(/\.json5?(\.[a-z0-9]+)?/i.test(file)) {
+                return json5.parse(buf.toString());
+            } else {
+                return buf;
+            }
+        }).then(data => {
+            context.data = data;
+            return Buffer.isBuffer(data) ? data : parseDirectives(context);
+        });
+    }
+    findAndMock(method, url, directory, context) {
+        return this.find(method, url, directory).then((file) => {
+            return this.mock(file, context);
+        }, function(e){
+            let response = context.response;
+            if(response) {
+                response.status(404);
+            }
+            return Promise.reject(e);
+        });
     }
 }
 

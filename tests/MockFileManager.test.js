@@ -119,13 +119,13 @@ describe("test mock function:", function(){
     test("use Mockjs syntax:", function(){
         let filepath = mockFile("/mock.json", JSON.stringify({"ip": "@ip"}));
         return expect(
-            MockFileManager.mock(filepath).then(json => isIP(json.ip))
+            MockFileManager.mock(filepath).then(json => isIP(json.data.ip))
         ).resolves.toBeTruthy();
     });
     test("use json5 syntax:", function(){
         let filepath = mockFile("/json5.json", "{json5: 'yes'}");
         return expect(
-            MockFileManager.mock(filepath).then(json => JSON.stringify(json))
+            MockFileManager.mock(filepath).then(json => JSON.stringify(json.data))
         ).resolves.toBe(JSON.stringify({json5: "yes"}));
     });
 });

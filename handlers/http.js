@@ -16,34 +16,23 @@ module.exports = function(req, resp, rules, next){
     if(!rootDirectory) {
         return next();
     }
-    MockFileManager.find(req.method, url, rootDirectory).then((file) => {
-        resp.set("X-Mock-File", file);
-        if(/\.json5?$/i.test(file)) {
-            MockFileManager.mock(file).then(data => {
-                // 允许用户自定义 延迟、杀掉、状态码
-                let delay = data["#delay#"];
-                let kill = data["#kill#"];
-                let code = data["#code#"];
-                delete data["#delay#"];
-                delete data["#kill#"];
-                delete data["#code#"];
-                setTimeout(() => {
-                    if(kill === true) {
-                        resp.socket.destroy();
-                    }
-                    if(typeof code === "number") {
-                        resp.status(code);
-                    }
-                    resp.json(data);
-                }, delay || 0);
-            }, error => {
-                resp.status(500);
-                resp.end("Error: " + error.message);
-            });
-        } else {
-            resp.sendFile(file);
+    MockFileManager.findAndMock(req.method, url, rootDirectory, {
+        request: req,
+        response: resp,
+        websocket: false
+    }).then(function(value){
+        if(resp.destroyed) { return; }
+        let data = value.data;
+        if(typeof data === "object") {
+            if(!Buffer.isBuffer(data)) {
+                return resp.json(data);
+            }
         }
-    }, function(e){
-        next();
+        resp.end(value.data);
+    }, function(error){
+        if(resp.statusCode === 200) {
+            resp.status(500);
+        }
+        resp.end(error.message + "\n" + error.stack);
     });
 };
