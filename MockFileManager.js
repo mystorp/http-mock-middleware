@@ -95,7 +95,7 @@ class MockFileFinder {
             context = {};
         }
         context.mockFile = file;
-        return readFileAsync(file, "utf-8").then((buf) => {
+        return readFileAsync(file).then((buf) => {
             if(/\.json5?(\.[a-z0-9]+)?/i.test(file)) {
                 return json5.parse(buf.toString());
             } else {
@@ -103,7 +103,7 @@ class MockFileFinder {
             }
         }).then(data => {
             context.data = data;
-            return Buffer.isBuffer(data) ? data : parseDirectives(context);
+            return Buffer.isBuffer(data) ? context : parseDirectives(context);
         });
     }
     findAndMock(method, url, directory, context) {

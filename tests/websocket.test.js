@@ -3,6 +3,7 @@ const express = require("express");
 const localHttpMock = require("../");
 const WebSocket = require("ws");
 const rimraf = require("rimraf");
+const isPlainObject = require("is-plain-object");
 
 const mockDirectoryPrefix = "tests/.data/websocket";
 const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
@@ -34,8 +35,12 @@ describe("websocket mock test", function(){
                     encodeMessage: function(error, msg){
                         if(error) {
                             msg = Buffer.from("Error: " + error.message);
-                        } else if(!(msg instanceof Buffer)) {
-                            msg = Buffer.from(JSON.stringify(msg));
+                        } else {
+							if(isPlainObject(msg)) {
+	                            msg = Buffer.from(JSON.stringify(msg));
+							} else if(!Buffer.isBuffer(msg)) {
+								msg = new Buffer(msg);
+							}
                         }
                         return msg.toString("base64");
                     },
@@ -63,7 +68,7 @@ describe("websocket mock test", function(){
             socket.send(JSON.stringify({type: "file", method: "my"}));
         });
         socket.on("message", function(e){
-            expect(e).toBe(Buffer.from(msg).toString("base64"));
+            expect(Buffer.from(e, "base64").toString()).toBe(msg);
             socket.close();
             done();
         });
@@ -104,7 +109,7 @@ describe("websocket mock test", function(){
             socket.send(JSON.stringify({type: "file", method: "data"}));
         });
         socket.on("message", function(e){
-            expect(e).toBe(Buffer.from(msg).toString("base64"));
+            expect(Buffer.from(e, "base64").toString()).toBe(msg);
             socket.close();
             done();
         });

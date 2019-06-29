@@ -33,6 +33,7 @@
     "@types/express": "^4.16.1",
     "coveralls": "^3.0.3",
     "express": "^4.17.0",
+    "is-plain-object": "^3.0.0",
     "jest": "^24.8.0",
     "rimraf": "^2.6.3",
     "uuid": "^3.3.2",

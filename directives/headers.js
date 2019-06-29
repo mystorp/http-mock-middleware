@@ -1,4 +1,4 @@
-exports.name = "response-headers";
+exports.name = "headers";
 
 exports.parse = function(value){
     if(value.websocket) { return value; }
