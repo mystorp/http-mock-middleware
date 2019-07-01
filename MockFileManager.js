@@ -47,12 +47,12 @@ class MockFileFinder {
      * @param {Array<string>} files 文件列表
      */
     _matchFile(filename, method, files){
-        let filenameRegExp = new RegExp(`^(?:${method}-)?${escapeStringRegexp(filename)}(?:\..*)?$`);
+        let filenameRegExp = new RegExp(`^(?:${method}-)?${escapeStringRegexp(filename)}(?:\\..*)?$`);
         let matchedFiles = files.filter(name => filenameRegExp.test(name));
         if(matchedFiles.length === 0) {
             let magicName = MagicNameMatcher.match(filename);
             if(magicName !== filename) {
-                filenameRegExp = new RegExp(`^(?:${method}-)?${escapeStringRegexp(magicName)}(?:\..*)?$`);
+                filenameRegExp = new RegExp(`^(?:${method}-)?${escapeStringRegexp(magicName)}(?:\\..*)?$`);
                 matchedFiles = files.filter(name => filenameRegExp.test(name));
             }
         }
