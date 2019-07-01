@@ -8,6 +8,7 @@ const directives = [
     require("./if"),
     require("./delay"),
     require("./status-code"),
+    require("./ws-notify"),
     require("./mock")
 ];
 exports.parse = parseDirectives;

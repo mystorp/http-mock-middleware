@@ -64,8 +64,8 @@ describe("websocket mock test", function(){
         let socket = new WebSocket(currentBaseUrl + "/ws");
         let msg = JSON.stringify({aa: 32, hello: "world!"});
         socket.on("open", function(){
-            mockFile("/file/my.json", msg);
-            socket.send(JSON.stringify({type: "file", method: "my"}));
+            mockFile("/file/my1.json", msg);
+            socket.send(JSON.stringify({type: "file", method: "my1"}));
         });
         socket.on("message", function(e){
             expect(Buffer.from(e, "base64").toString()).toBe(msg);
@@ -78,9 +78,9 @@ describe("websocket mock test", function(){
         let msg = JSON.stringify({"#delay#": 1000, hello: "world!"});
         let start;
         socket.on("open", function(){
-            mockFile("/file/my.json", msg);
+            mockFile("/file/my2.json", msg);
             start = Date.now();
-            socket.send(JSON.stringify({type: "file", method: "my"}));
+            socket.send(JSON.stringify({type: "file", method: "my2"}));
         });
         socket.on("message", function(e){
             expect(Date.now() - start).toBeGreaterThan(1000);
@@ -92,8 +92,8 @@ describe("websocket mock test", function(){
         let socket = new WebSocket(currentBaseUrl + "/ws");
         let msg = "invalid json";
         socket.on("open", function(){
-            mockFile("/file/my.json", msg);
-            socket.send(JSON.stringify({type: "file", method: "my"}));
+            mockFile("/file/my3.json", msg);
+            socket.send(JSON.stringify({type: "file", method: "my3"}));
         });
         socket.on("message", function(e){
             expect(Buffer.from(e, "base64").toString()).toMatch(/^Error: /);
@@ -129,6 +129,24 @@ describe("websocket mock test", function(){
         let socket = new WebSocket(currentBaseUrl + "/wsx");
         socket.on("error", function(e) {
             expect(e.message).toBe("socket hang up");
+            done();
+        });
+    });
+    test("websocket support #notify#", function(done){
+        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let msg = {
+            "#notify#": "/file/notify-data"
+        }, i = 0;
+        socket.on("open", function(){
+            mockFile("/file/notify.json", JSON.stringify(msg));
+            mockFile("/file/notify-data", "notify-data");
+            socket.send(JSON.stringify({type: "file", method: "notify"}));
+        });
+        socket.on("message", function(e){
+            i++;
+            if(i !== 2) { return; }
+            expect(Buffer.from(e, "base64").toString()).toBe("notify-data");
+            socket.close();
             done();
         });
     });

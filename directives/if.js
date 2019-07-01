@@ -7,34 +7,41 @@ exports.name = "if";
 exports.parse = function(value) {
     let data = value.data;
     let request = value.request;
-    let hasIfDirective = false;
-    let keys = Object.keys(data).filter(function(key){
+    let args = data["#args#"];
+    delete data["#args#"];
+    let codeContext = request ? {
+        headers: request.headers,
+        query: request.query || {},
+        body: request.body || {},
+        args: args || {}
+    } : {
+        args: args || {}
+    };
+    vm.createContext(codeContext);
+    let ifKeys = Object.keys(data).filter(function(key){
         return ifRe.test(key);
-    }).filter(function(key){
-        hasIfDirective = true;
+    });
+    let matchedKeys = ifKeys.filter(function(key, i){
         let code = ifRe.exec(key)[1];
-        let context = {
-            headers: request.headers,
-            query: request.query,
-            body: request.body
-        };
-        return vm.runInContext(code, context, {
-            filename: "#if#-" + Date.now() + ".js",
+        return vm.runInContext(code, codeContext, {
+            filename: `#if#-${i}.js`,
             timeout: 500
         });
     });
-    if(hasIfDirective) {
+    if(ifKeys.length > 0) {
         let parsedData;
-        if(keys.length === 0) {
+        if(matchedKeys.length === 0) {
             if(data.hasOwnProperty("#default#")) {
                 parsedData = data["#default#"];
             } else {
-                throw new Error("missing \"#default#\" directive!");
+                throw new Error('missing "#default#" directive!');
             }
         } else {
-            parsedData = data[keys[0]];
+            parsedData = data[matchedKeys[0]];
         }
         value.data = parsedData;
+    } else {
+        delete data["#default#"];
     }
     return value;
 };

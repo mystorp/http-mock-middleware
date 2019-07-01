@@ -19,12 +19,9 @@ module.exports = function(options, rules){
                 }
                 return onMessageHandler.call(ws, localUrl, rootDirectory, websocketOptions);
             });
-            let greetingFile = path.resolve(rootDirectory, "__greeting__");
-            fs.stat(greetingFile, (err, stat) => {
-                if(err) { return; }
-                if(!stat.isFile()) { return; }
+            MockFileManager.find("", "/__greeting__", rootDirectory).then(() => {
                 onMessageHandler.call(ws, "/__greeting__", rootDirectory, websocketOptions);
-            });
+            }, () => {/* ignore */});
         });
     });
     server.on("upgrade", function(request, socket, head){
@@ -40,16 +37,29 @@ module.exports = function(options, rules){
     });
 };
 
-function onMessageHandler(url, rootDirectory, options) {
+function onMessageHandler(url, rootDirectory, options, extraArgs) {
     let ws = this;
     MockFileManager.findAndMock("", url, rootDirectory, {
-        websocket: true
+        websocket: true,
+        args: extraArgs
     }).then(function(value){
         let data = value.data;
         let msg = options.encodeMessage(null, data);
         ws.send(msg);
+        let notifies = value.notifies;
+        if(!(notifies && Array.isArray(notifies))) { return; }
+        createNotifies(ws, notifies, rootDirectory, options);
     }, function(error){
         let msg = options.encodeMessage(error);
         ws.send(msg);
     });
+}
+
+
+function createNotifies(ws, notifies, rootDirectory, options) {
+    for(let notify of notifies) {
+        setTimeout(function(){
+            onMessageHandler.call(ws, notify.url, notify.dir || rootDirectory, options, notify.args);
+        }, notify.delay);
+    }
 }
