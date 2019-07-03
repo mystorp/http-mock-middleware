@@ -7,21 +7,19 @@ const rimraf = require("rimraf");
 const isCI = process.env.TRAVIS && process.env.CI;
 const mockDirectoryPrefix = "tests/.data/proxy";
 
-beforeAll(function(){
-    fs.writeFileSync("mockrc.json", JSON.stringify({
-        "/": mockDirectoryPrefix
-    }));
-});
 afterAll(function(){
     rimraf.sync(mockDirectoryPrefix);
-    fs.unlinkSync("mockrc.json");
 });
 
 describe("proxy mock test", function(){
     let currentApp, currentServer, currentBaseUrl;
     beforeEach(function(done){
         currentApp = express();
-        currentApp.use(localHttpMock());
+        currentApp.use(localHttpMock({
+            mockRules: {
+                "/": mockDirectoryPrefix
+            }
+        }));
         currentServer = currentApp.listen(function(){
             let addr = currentServer.address();
             currentBaseUrl = "http://127.0.0.1:" + addr.port;

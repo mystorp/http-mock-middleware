@@ -1,33 +1,32 @@
 const fs = require("fs");
 const express = require("express");
-const axios = require("axios");
+const axios = require("axios").create();
 const localHttpMock = require("../");
 const rimraf = require("rimraf");
 
 const mockDirectoryPrefix = "tests/.data/http";
 const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
 
-beforeAll(function(){
-    fs.writeFileSync("mockrc.json", JSON.stringify({
-        "/mock": mockDirectoryPrefix,
-        "/mock/v2": mockDirectoryPrefix + "/tmp",
-        "/directive": mockDirectoryPrefix
-    }));
-});
 afterAll(function(){
     rimraf.sync(mockDirectoryPrefix);
-    fs.unlinkSync("mockrc.json");
 });
 
 describe("http mock test", function(){
     let currentApp, currentServer, currentBaseUrl;
     beforeAll(function(done){
         currentApp = express();
-        currentApp.use(localHttpMock());
-        axios.interceptors.request.use(function(config){
-            if(config.url.indexOf("/") === 0) {
-                config.url = currentBaseUrl + config.url;
+        currentApp.use(localHttpMock({
+            mockRules: {
+                "/mock": mockDirectoryPrefix,
+                "/mock/v2": mockDirectoryPrefix + "/tmp",
+                "/directive": mockDirectoryPrefix
             }
+        }));
+        currentApp.use(function(req, resp){
+            resp.status(404).end();
+        });
+        axios.interceptors.request.use(function(config){
+            config.url = currentBaseUrl + config.url;
             return config;
         });
         currentServer = currentApp.listen(function(){
@@ -103,13 +102,5 @@ describe("http mock test", function(){
         return expect(
             axios.get("/directive/code").catch(e => e.response.status)
         ).resolves.toBe(408);
-    });
-    // TODO: use cors
-    test("OPTIONS method has no response", function(){
-        return expect(
-            axios.options("/something", {
-                headers: {"Origin": "http://127.0.0.1"}
-            }).then(resp => resp.data)
-        ).resolves.toBe("");
     });
 });

@@ -8,17 +8,8 @@ const isPlainObject = require("is-plain-object");
 const mockDirectoryPrefix = "tests/.data/websocket";
 const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
 
-beforeAll(function(){
-    fs.writeFileSync("mockrc.json", JSON.stringify({
-        "/ws": {
-            type: "websocket",
-            dir: mockDirectoryPrefix
-        }
-    }));
-});
 afterAll(function(){
     rimraf.sync(mockDirectoryPrefix);
-    fs.unlinkSync("mockrc.json");
 });
 
 describe("websocket mock test", function(){
@@ -29,6 +20,12 @@ describe("websocket mock test", function(){
             let addr = currentServer.address();
             currentBaseUrl = "ws://127.0.0.1:" + addr.port;
             currentApp.use(localHttpMock({
+                mockRules: {
+                    "/ws": {
+                        type: "websocket",
+                        dir: mockDirectoryPrefix
+                    }
+                },
                 server: currentServer,
                 websocket: {
                     // send base64

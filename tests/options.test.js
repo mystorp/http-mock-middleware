@@ -2,6 +2,12 @@ const fs = require("fs");
 const { load } = require("../options");
 const { mockFile } = require("./utils");
 
+afterAll(function(){
+    if(fs.existsSync("mockrc.json")) {
+        fs.unlinkSync("mockrc.json");
+    }
+});
+
 describe("test options", function(){
     test("mockrc.json must be a valid json file", function(){
         mockFile("", "mockrc.json", "xx");
@@ -15,27 +21,25 @@ describe("test options", function(){
         if(fs.existsSync("mockrc.json")) {
             fs.unlinkSync("mockrc.json");
         }
-        let packageText = fs.readFileSync("package.json", "utf-8");
-        let json = JSON.parse(packageText);
+        let json = require("../package.json");
         json.mock = 31;
-        fs.writeFileSync("package.json", JSON.stringify(json, null, 2));
         expect(load).toThrow("package.json's mock field must be object");
-        fs.writeFileSync("package.json", packageText);
     });
-    test("options must not be {}", function(){
-        mockFile("", "mockrc.json", "{}");
-        expect(load).toThrow("mock config can't be {}");
+    test("mockRules must be object", function(){
+        expect(() => load(1)).toThrow("mockRules must be object");
     });
-    test("key of options must start with /", function(){
-        mockFile("", "mockrc.json", '{"a": ".data"}');
-        expect(load).toThrow(/invalid url: .*?, it must start with "\/"!/);
+    test("mockRules must not be empty object", function(){
+        expect(() => load({})).toThrow("mockRules must not be empty object");
     });
-    test("value.dir of options must be a valid string", function(){
-        mockFile("", "mockrc.json", '{"/a": {dir: 23}}');
-        expect(load).toThrow(/dir value for .*? must be a valid string/);
+    test("key of mockRules must start with /", function(){
+        expect(() => load({xx: 1})).toThrow(/invalid url: .*?, it must start with "\/"/);
     });
-    test("value.type of options must be \"websocket\" or falsy", function(){
-        mockFile("", "mockrc.json", '{"/a": {websocket: 23, dir: ".data", type: 11}}');
-        expect(load).toThrow("type value can only be either \"websocket\" or falsy!");
+    test("value.dir of mockRules must be a valid string", function(){
+        expect(() => load({"/a": {dir: 23}})).toThrow(/dir value for .*? must be a valid string/);
+    });
+    test('value.type of mockRules must be "websocket" or falsy', function(){
+        expect(() => load({"/a": {
+            websocket: 23, dir: ".data", type: 11
+        }})).toThrow('type value can only be either "websocket" or falsy');
     });
 });

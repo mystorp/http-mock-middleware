@@ -6,16 +6,28 @@ module.exports = function(req, resp, rules, next){
     if(/\/$/.test(url)) {
         url = url.substr(0, url.length - 1);
     }
+    // ignore "/"
     if(url === "") { return next(); }
-    let matchedRules = rules.filter(rule => url.indexOf(rule.url) === 0);
+    let matchedRules = rules.filter(rule => {
+        let nurl = rule.url.length === 1 ? rule.url : rule.url + "/";
+        return rule.url === url || url.indexOf(nurl) === 0;
+    });
     if(matchedRules.length === 0) {
-        rootDirectory = null;
-    } else {
-        rootDirectory = matchedRules.reduce((a, b) => a.url.length > b.url.length ? a : b).rootDirectory;
-    }
-    if(!rootDirectory) {
         return next();
     }
+    // select longest match
+    let myrule = matchedRules.reduce((a, b) => a.url.length > b.url.length ? a : b);
+    let { rootDirectory, cors } = myrule;
+    cors(req, resp, function(err){
+        if(err) {
+            resp.status(500).end(err.stack || err.message);
+        } else {
+            doResponse(req, resp, url, rootDirectory, next);
+        }
+    });
+};
+
+function doResponse(req, resp, url, rootDirectory, next) {
     MockFileManager.findAndMock(req.method, url, rootDirectory, {
         request: req,
         response: resp,
@@ -30,9 +42,9 @@ module.exports = function(req, resp, rules, next){
         }
         resp.end(value.data);
     }, function(error){
-        if(resp.statusCode === 200) {
-            resp.status(500);
+        if(error.code === "ENOENT" || /^can't find mock (file|directory)/.test(error.message)) {
+            return next();
         }
-        resp.end(error.message + "\n" + error.stack);
+        resp.status(500).end(error.message + "\n" + error.stack);
     });
-};
+}

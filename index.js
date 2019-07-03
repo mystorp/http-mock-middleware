@@ -1,3 +1,4 @@
+const cors = require("cors");
 const options = require("./options");
 const handleProxy = require("./handlers/proxy");
 const handleHttp = require("./handlers/http");
@@ -6,28 +7,21 @@ const handleHttp = require("./handlers/http");
  * @returns {ExpressRequestHandler}
  */
 let middleware = module.exports = function(middlewareOptions){
-    let mockRules = options.load();
+    let mockRules = options.load(middlewareOptions.mockRules);
     let httpRules = mockRules.filter(rule => rule.type !== "websocket");
+    httpRules.forEach(rule => {
+        if(rule.corsOptions && typeof rule.corsOptions === "object") {
+            rule.cors = cors(rule.corsOptions);
+        } else {
+            rule.cors = cors();
+        }
+    });
     let websocketRules = mockRules.filter(rule => rule.type === "websocket");
     middlewareOptions = middlewareOptions || {};
     if(websocketRules.length > 0 && enableWebsocket(middlewareOptions)) {
         require("./handlers/websocket")(middlewareOptions, websocketRules);
     }
     return function(req, resp, next){
-        let origin = req.get("Origin");
-        if(origin) {
-            let hasCookie = !!req.get("Cookie");
-            resp.set({
-                "Access-Control-Allow-Origin": hasCookie ? origin : "*",
-                "Access-Control-Allow-Credentials": true,
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS, DELETE, PUT",
-                "Access-Control-Allow-Headers": "Content-Type, X-Mock-Proxy"
-            });
-            if(req.method.toLowerCase() === "options") {
-                resp.status(200);
-                return resp.end();
-            }
-        }
         let proxy = req.get("X-Mock-Proxy");
         if(proxy) {
             handleProxy(req, resp, middlewareOptions.proxy, next);

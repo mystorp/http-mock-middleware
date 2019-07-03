@@ -8,31 +8,27 @@ const isCI = process.env.TRAVIS && process.env.CI;
 const mockDirectoryPrefix = "tests/.data/proxy-autoSave";
 const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
 
-beforeAll(function(){
-    fs.writeFileSync("mockrc.json", JSON.stringify({
-        "/": mockDirectoryPrefix
-    }));
-});
 afterAll(function(){
     rimraf.sync(mockDirectoryPrefix);
-    fs.unlinkSync("mockrc.json");
 });
 
 describe("proxy with autoSave and rename", function(){
-    let currentApp, currentServer, currentBaseUrl;
+    let currentApp, currentServer, currentBaseUrl, axiosInstance;
     beforeAll(function(done){
+        axiosInstance = axios.create();
         currentApp = express();
         currentApp.use(localHttpMock({
+            mockRules: {
+                "/": mockDirectoryPrefix
+            },
             proxy: {
                 autoSave: true,
                 saveDirectory: mockDirectoryPrefix,
                 overrideSameFile: "rename"
             }
         }));
-        axios.interceptors.request.use(function(config){
-            if(config.url.indexOf("/") === 0) {
-                config.url = currentBaseUrl + config.url;
-            }
+        axiosInstance.interceptors.request.use(function(config){
+            config.url = currentBaseUrl + config.url;
             return config;
         });
         currentServer = currentApp.listen(function(){
@@ -52,7 +48,7 @@ describe("proxy with autoSave and rename", function(){
         if(fs.existsSync(savedFile)) {
             fs.unlinkSync(savedFile);
         }
-        return expect(axios.get("/package/local-http-mock", {
+        return expect(axiosInstance.get("/package/local-http-mock", {
             headers: {
                 "X-Mock-Proxy": isCI ? "https://www.npmjs.com" : "https://npm.taobao.org"
             }
@@ -67,7 +63,7 @@ describe("proxy with autoSave and rename", function(){
         if(fs.existsSync(savedFile)) {
             fs.unlinkSync(savedFile);
         }
-        return expect(axios.get("/local-http-mock/1.0.0", {
+        return expect(axiosInstance.get("/local-http-mock/1.0.0", {
             headers: {
                 "X-Mock-Proxy": isCI ? "https://registry.npmjs.com" : "https://registry.npm.taobao.org"
             },
@@ -83,7 +79,7 @@ describe("proxy with autoSave and rename", function(){
     });
     test("rename exists file when save proxy data to local disk", function(){
         mockFile("/package/get-axios", "test");
-        return expect(axios.get("/package/axios", {
+        return expect(axiosInstance.get("/package/axios", {
             headers: {
                 "X-Mock-Proxy": isCI ? "https://www.npmjs.com" : "https://npm.taobao.org"
             }
@@ -95,21 +91,22 @@ describe("proxy with autoSave and rename", function(){
 });
 
 describe("proxy with autoSave and override", function(){
-    let currentApp, currentServer, currentBaseUrl;
+    let currentApp, currentServer, currentBaseUrl, axiosInstance;
     beforeAll(function(done){
+        axiosInstance = axios.create();
         currentApp = express();
         currentApp.use(localHttpMock({
+            mockRules: {
+                "/": mockDirectoryPrefix
+            },
             proxy: {
                 autoSave: true,
                 saveDirectory: mockDirectoryPrefix,
                 overrideSameFile: "override"
             }
         }));
-        // TODO: use new Axios
-        axios.interceptors.request.use(function(config){
-            if(config.url.indexOf("/") === 0) {
-                config.url = currentBaseUrl + config.url;
-            }
+        axiosInstance.interceptors.request.use(function(config){
+            config.url = currentBaseUrl + config.url;
             return config;
         });
         currentServer = currentApp.listen(function(){
@@ -124,7 +121,7 @@ describe("proxy with autoSave and override", function(){
         currentApp = currentServer = currentBaseUrl = null;
     });
     test("not save proxy data if request url is /", function(){
-        return expect(axios.get("/", {
+        return expect(axiosInstance.get("/", {
             headers: {
                 "X-Mock-Proxy": isCI ? "https://www.npmjs.com" : "https://npm.taobao.org"
             }
@@ -132,7 +129,7 @@ describe("proxy with autoSave and override", function(){
     });
     test("override exists file when save proxy data to local disk", function(){
         mockFile("/package/get-ws", "test");
-        return expect(axios.get("/package/ws", {
+        return expect(axiosInstance.get("/package/ws", {
             headers: {
                 "X-Mock-Proxy": isCI ? "https://www.npmjs.com" : "https://npm.taobao.org"
             }

@@ -71,13 +71,13 @@ describe("find mock file:", function(){
         let filepath = mockFile("/dir1/dir2", "");
         return expect(
             MockFileManager.find("GET", "/dir1/dir2/file", mockDirectoryPrefix).catch(e => Promise.reject(e.message))
-        ).rejects.toMatch(/^directory .* not exists/);
+        ).rejects.toMatch(/^can't find mock directory/);
     });
     test("magic directory name refer to other file will throw error", function(){
         let filepath = mockFile("/dir1/[number]", "");
         return expect(
             MockFileManager.find("GET", "/dir1/32323/file", mockDirectoryPrefix).catch(e => Promise.reject(e.message))
-        ).rejects.toMatch(/^directory .* not exists/);
+        ).rejects.toMatch(/^can't find mock directory/);
     });
     test("directory exists buf file not exists will throw error", function(){
         let filepath = mockFile("/path/to/file", "");

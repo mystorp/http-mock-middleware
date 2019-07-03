@@ -73,7 +73,7 @@ class MockFileFinder {
             if(s.isDirectory()) {
                 return cdir;
             } else {
-                throw new Error(`directory ${cdir} not exists!`);
+                throw new Error(`can't find mock directory: ${cdir}`);
             }
         }).catch((e) => {
             let magicName = MagicNameMatcher.match(name)
@@ -85,7 +85,7 @@ class MockFileFinder {
                 if(s.isDirectory()) {
                     return mcdir;
                 } else {
-                    throw new Error(`directory ${mcdir} not exists!`);
+                    throw new Error(`can't find mock directory: ${mcdir}`);
                 }
             });
         });
@@ -109,12 +109,6 @@ class MockFileFinder {
     findAndMock(method, url, directory, context) {
         return this.find(method, url, directory).then((file) => {
             return this.mock(file, context);
-        }, function(e){
-            let response = context.response;
-            if(response) {
-                response.status(404);
-            }
-            return Promise.reject(e);
         });
     }
 }

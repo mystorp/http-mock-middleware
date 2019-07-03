@@ -26,6 +26,13 @@ beforeAll(function(done){
         filename: "[name].js",
         after: function(app, server){
             localHttpMock.bindWebpack(app, server || this, {
+                mockRules: {
+                    "/": mockDirectoryPrefix,
+                    "/ws": {
+                        type: "websocket",
+                        dir: mockDirectoryPrefix + path.sep + "ws"
+                    }
+                },
                 websocket: {
                     // send base64
                     encodeMessage: function(error, msg){
@@ -46,19 +53,9 @@ beforeAll(function(done){
         }
     });
     devServer.listen(18080, "127.0.0.1", done);
-    fs.writeFileSync("mockrc.json", JSON.stringify({
-        "/": mockDirectoryPrefix,
-        "/ws": {
-            type: "websocket",
-            dir: mockDirectoryPrefix + path.sep + "ws"
-        }
-    }));
 });
 afterAll(function(done){
     rimraf.sync(mockDirectoryPrefix);
-    if(fs.existsSync("mockrc.json")) {
-        fs.unlinkSync("mockrc.json");
-    }
     devServer.close(() => done());
 });
 
