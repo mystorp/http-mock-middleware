@@ -4,8 +4,10 @@
  *
  */
 const directives = [
+    require("./cookies"),
     require("./headers"),
     require("./if"),
+    require("./var-expansion"),
     require("./delay"),
     require("./status-code"),
     require("./ws-notify"),

@@ -1,5 +1,7 @@
 const ifDirective = require("../directives/if");
 const notifyDirective = require("../directives/ws-notify");
+const varExpansionDirective = require("../directives/var-expansion");
+const cookieDirective = require("../directives/cookies");
 const rimraf = require("rimraf");
 
 const mockDirectoryPrefix = "tests/.data/directives";
@@ -99,16 +101,93 @@ describe("test if directives", function(){
 });
 
 describe("test notify directive", function(){
-    expect(notifyDirective.parse({
-        websocket: true,
-        data: {"#notify#": "/url"}
-    }).notifies).toEqual([{delay: 0, url: "/url"}]);
+    test("#notify# is string", function(){
+        expect(notifyDirective.parse({
+            websocket: true,
+            data: {"#notify#": "/url"}
+        }).notifies).toEqual([{delay: 0, url: "/url"}]);
+    });
+    test("#notify# is object", function(){
+        expect(notifyDirective.parse({
+            websocket: true,
+            data: {"#notify#": {
+                delay: 1,
+                args: {from: 1},
+                url: "/url"
+            }}
+        }).notifies).toEqual([{delay: 1, url: "/url", args: {from: 1}}]);
+    });
+});
 
-    expect(notifyDirective.parse({
-        websocket: true,
-        data: {"#notify#": {
-            delay: 1,
-            url: "/url"
-        }}
-    }).notifies).toEqual([{delay: 1, url: "/url"}]);
+describe("test var-expansion directive", function(){
+    let request = {
+        query: {a: 3},
+        body: {b: 4},
+        cookies: {c: 5},
+        signedCookies: {d: 6},
+        headers: {"Content-Type": "text/html"}
+    };
+    Object.keys(request).forEach(key => {
+        let value = request[key];
+        let key2 = Object.keys(value)[0];
+        test(`"#$${key}#" will expand to "${JSON.stringify(value)}"`, function(){
+            expect(varExpansionDirective.parse({
+                request, data: `#$${key}#`
+            }).data).toEqual(value);
+        }); 
+        test(`"#$${key}.${key2}#" will expand to "${value[key2]}"`, function(){
+            expect(varExpansionDirective.parse({
+                request, data: `#$${key}.${key2}#`
+            }).data).toEqual(value[key2]);
+        });
+    });
+    let values = [];
+    let data = Object.keys(request).map(x => {
+        let value = request[x];
+        let key2 = Object.keys(value)[0];
+        values.push(value[key2]);
+        return [x, key2];
+    }).map(x => `#$${x[0]}.${x[1]}#`).join(", ");
+    test(`"${data}" will expand to "${values.join(", ")}"`, function(){
+        expect(varExpansionDirective.parse({request, data}).data).toEqual(values.join(", "));
+    });
+});
+
+describe("test cookies directive", function(){
+    let cookies1 = {
+        a: 3,
+        b: 4
+    };
+    let cookies2 = [{
+        name: "a",
+        value: "b",
+        options: {path: "/xx"}
+    }];
+    let fakeResponse = {
+        cookie: function(){}
+    };
+    test("set cookie via object", function(){
+        let count = 0;
+        cookieDirective.parse({
+            response: {
+                cookie(){ count++; }
+            },
+            data: {
+                "#cookies#": cookies1
+            }
+        });
+        expect(count).toBe(2);
+    });
+    test("set cookie via array", function(){
+        let count = 0;
+        cookieDirective.parse({
+            response: {
+                cookie(){ count++; }
+            },
+            data: {
+                "#cookies#": cookies2
+            }
+        });
+        expect(count).toBe(1);
+    });
 });
