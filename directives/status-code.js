@@ -1,18 +1,18 @@
 exports.name = "status-code";
 
-exports.parse = function(value){
-    let response = value.response;
-    if(value.websocket || !response) { return value; }
-    let data = value.data;
+exports.parse = function(context){
+    let response = context.response;
+    if(context.websocket || !response) { return context; }
+    let data = context.data;
     let kill = data["#kill#"];
     let code = data["#code#"];
     delete data["#kill#"];
     delete data["#code#"];
     if(kill === true) {
         response.socket.destroy();
-        value.next = false;
+        context.next = false;
     } else if(typeof code === "number") {
         response.status(code);
     }
-    return value;
+    return context;
 };

@@ -4,19 +4,22 @@ const ifRe = /^#if:(.*?)#$/;
 
 exports.name = "if";
 
-exports.parse = function(value) {
-    let data = value.data;
-    let request = value.request;
+exports.parse = function(context) {
+    let data = context.data;
+    let request = context.request;
     let args = data["#args#"];
-    delete data["#args#"];
+    if(context.args) {
+        args = Object.assign({}, args, context.args);
+    }
     let codeContext = request ? {
         headers: request.headers,
         query: request.query || {},
         body: request.body || {},
-        args: args || {}
-    } : {
-        args: args || {}
-    };
+        cookies: request.cookies || {},
+        signedCookies: request.signedCookies || {}
+    } : {};
+    codeContext.args = args || {};
+    codeContext.env = process.env;
     vm.createContext(codeContext);
     let ifKeys = Object.keys(data).filter(function(key){
         return ifRe.test(key);
@@ -39,9 +42,9 @@ exports.parse = function(value) {
         } else {
             parsedData = data[matchedKeys[0]];
         }
-        value.data = parsedData;
+        context.data = parsedData;
     } else {
         delete data["#default#"];
     }
-    return value;
+    return context;
 };
