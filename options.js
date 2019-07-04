@@ -45,9 +45,6 @@ function load(mockRules){
         if(rule.url.length > 1) {
             rule.url = rule.url.replace(/\/+$/, "");
         }
-        if(originalRule.corsOptions) {
-            rule.corsOptions = originalRule.corsOptions;
-        }
         return rule;
     });
     return rules;

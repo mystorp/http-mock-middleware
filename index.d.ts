@@ -6,6 +6,49 @@ export = localHttpMock;
 
 interface MockOptions {
     /**
+     * 是否支持跨域，默认为 true。一般来说不需要配置此选项,
+     * 如果你有特殊需求，可以参考 https://github.com/expressjs/cors#configuration-options
+     */
+    cors?: boolean | object;
+    /**
+     * 是否解析请求 body，默认为 true。如果你已经使用了 body-parser 之类的 middleware
+     * 请设置此值为 false。
+     * 如果需要配置 body-parser 参数，请传递对象格式，详细参考：
+     * https://github.com/expressjs/body-parser
+     */
+    parseBody?: boolean | {
+        json?: any;
+        urlencoded?: any;
+        raw?: any;
+        text?: any;
+    };
+    /**
+     * 是否解析请求 cookie，默认为 true。如果你已经使用了 cookie-parser 之类的 middleware
+     * 请设置此值为 false。
+     * 如果需要配置 cookie-parser 参数，请传递对象格式，详细参考：
+     * https://github.com/expressjs/cookie-parser
+     */
+    parseCookie?: boolean | {
+        secret: string;
+        options: any;
+    };
+    /**
+     * 如果你不想使用 mockrc.json 配置文件，可以手动传递配置给这个参数
+     */
+    mockRules?: {
+        [key: string]: string | {
+            /**
+             * 代理类型，目前仅支持 websocket
+             */
+            type?: "websocket",
+            /**
+             * 假数据根目录。项目代码里面使用 rootDirectory 来引用这个值，
+             * 这里为了方便配置，仅仅使用 dir
+             */
+            dir: ""
+        }
+    },
+    /**
      * 当需要启用 websocket 时，这个是必选项。
      */
     server?: Server,
@@ -18,7 +61,7 @@ interface MockOptions {
          * 当查找或读取文件发生错误时，第一个参数指定了具体的错误信息
          * 当 mock 文件是 json 时，第二个参数收到的是 json 对象
          * 当 mock 文件时其它文件时，第二个参数收到的是 Buffer 对象
-         * 注意：由于 `websocket.send()` 方法仅支持发送 string, Buffer 等
+         * 注意：由于 `websocket.send()` 方法仅支持发送 string, Buffer, TypedArray 等
          * 因此你有必要处理好返回的数据
          */
         encodeMessage(error: Error, msg: Buffer|Object): any;
@@ -46,6 +89,7 @@ interface MockOptions {
         /**
          * 此选项指定将数据保存为本地 mock 文件时，如果要保存的文件已经存在将如何处理
          * 目前支持的选项为 "rename", "override"
+         * 注意：如果你的前端代码里面存在大量轮训，建议使用 override
          */
         overrideSameFile: "rename" | "override"
     }

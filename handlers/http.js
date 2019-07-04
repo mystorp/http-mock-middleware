@@ -1,6 +1,7 @@
 const MockFileManager = require("../MockFileManager");
+const { callMiddleware } = require("../utils");
 
-module.exports = function(req, resp, rules, next){
+module.exports = function(req, resp, rules, middlewares, next){
     let url = req.path;
     // remove tail slash
     if(/\/$/.test(url)) {
@@ -17,13 +18,11 @@ module.exports = function(req, resp, rules, next){
     }
     // select longest match
     let myrule = matchedRules.reduce((a, b) => a.url.length > b.url.length ? a : b);
-    let { rootDirectory, cors } = myrule;
-    cors(req, resp, function(err){
-        if(err) {
-            resp.status(500).end(err.stack || err.message);
-        } else {
-            doResponse(req, resp, url, rootDirectory, next);
-        }
+    let { rootDirectory } = myrule;
+    callMiddleware(req, resp, middlewares).then(function(){
+        doResponse(req, resp, url, rootDirectory, next);
+    }, function(err){
+        resp.status(500).end(err.stack || err.message);
     });
 };
 
@@ -43,6 +42,7 @@ function doResponse(req, resp, url, rootDirectory, next) {
         resp.end(value.data);
     }, function(error){
         if(error.code === "ENOENT" || /^can't find mock (file|directory)/.test(error.message)) {
+            // TODO: just return 404 ?
             return next();
         }
         resp.status(500).end(error.message + "\n" + error.stack);
