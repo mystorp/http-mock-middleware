@@ -3,4 +3,4 @@ TODO
 tsconfig.json
 .vscode
 yarn.lock
-tests/.data
+tests
