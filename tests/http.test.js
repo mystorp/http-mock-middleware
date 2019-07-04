@@ -22,9 +22,6 @@ describe("http mock test", function(){
                 "/directive": mockDirectoryPrefix
             }
         }));
-        currentApp.use(function(req, resp){
-            resp.status(404).end();
-        });
         axios.interceptors.request.use(function(config){
             config.url = currentBaseUrl + config.url;
             return config;

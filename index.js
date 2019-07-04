@@ -15,8 +15,14 @@ let middleware = module.exports = function(middlewareOptions){
         parseCookie: true
     }, middlewareOptions);
     let mockRules = options.load(middlewareOptions.mockRules);
-    let httpRules = mockRules.filter(rule => rule.type !== "websocket");
-    let httpMiddlewares = setupMiddlewares(middlewareOptions);
+	let httpOptions = {
+		rules: mockRules.filter(rule => rule.type !== "websocket"),
+		middlewares: setupMiddlewares(middlewareOptions),
+		auto404: 404
+	};
+	if(typeof middlewareOptions.auto404 !== "undefined") {
+		httpOptions.auto404 = middlewareOptions.auto404;
+	}
     let websocketRules = mockRules.filter(rule => rule.type === "websocket");
     middlewareOptions = middlewareOptions || {};
     if(websocketRules.length > 0 && enableWebsocket(middlewareOptions)) {
@@ -27,7 +33,7 @@ let middleware = module.exports = function(middlewareOptions){
         if(proxy) {
             handleProxy(req, resp, middlewareOptions.proxy, next);
         } else {
-            handleHttp(req, resp, httpRules, httpMiddlewares, next);
+            handleHttp(req, resp, httpOptions, next);
         }
     };
 };

@@ -5,6 +5,11 @@ export as namespace localHttpMock;
 export = localHttpMock;
 
 interface MockOptions {
+	/**
+	 * 如果请求 url 无法映射到本地文件，是否自动响应为 404
+	 * 如果你已经添加了 404 处理函数，请设置此选项为 false
+	 */
+	auto404: boolean;
     /**
      * 是否支持跨域，默认为 true。一般来说不需要配置此选项,
      * 如果你有特殊需求，可以参考 https://github.com/expressjs/cors#configuration-options
