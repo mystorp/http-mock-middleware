@@ -2,6 +2,7 @@ const ifDirective = require("../directives/if");
 const notifyDirective = require("../directives/ws-notify");
 const varExpansionDirective = require("../directives/var-expansion");
 const cookieDirective = require("../directives/cookies");
+const headerDirective = require("../directives/headers");
 const rimraf = require("rimraf");
 
 const mockDirectoryPrefix = "tests/.data/directives";
@@ -163,9 +164,6 @@ describe("test cookies directive", function(){
         value: "b",
         options: {path: "/xx"}
     }];
-    let fakeResponse = {
-        cookie: function(){}
-    };
     test("set cookie via object", function(){
         let count = 0;
         cookieDirective.parse({
@@ -189,5 +187,24 @@ describe("test cookies directive", function(){
             }
         });
         expect(count).toBe(1);
+    });
+});
+
+describe("test headers directive", function(){
+    test("set header via object", function(){
+        let count = 0;
+        headerDirective.parse({
+            mockFile: "/x.json",
+            response: {
+                set: function(){ count++; }
+            },
+            data: {
+                "#headers#": {
+                    a: 3,
+                    b: 4
+                }
+            }
+        });
+        expect(count).toBe(4);
     });
 });
