@@ -86,7 +86,7 @@ function walkObject(obj, fn) {
         });
     } else if(isArray(obj)) {
         obj.forEach(function(value, i, arr){
-            obj[key] = value = fn(value, i, arr);
+            obj[i] = value = fn(value, i, arr);
             if(isObject(value) || isArray(value)) {
                 walkObject(value, fn);
             }

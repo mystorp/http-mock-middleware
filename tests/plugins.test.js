@@ -123,8 +123,8 @@ describe("test notify plugin", function(){
 describe("test var-expansion plugin", function(){
     let request = {
         query: {a: 3},
-        body: {b: 4},
-        cookies: {c: 5},
+        body: {b: [1,2,3]},
+        cookies: {c: [{x:1}]},
         signedCookies: {d: 6},
         headers: {"Content-Type": "text/html"}
     };
