@@ -131,7 +131,7 @@ local-http-mock 按照如下顺序工作：
 
 1. 收到请求，将请求 url 和 mockrc.json 指定的规则进行匹配
 2. 使用匹配的规则将 url 映射为本地文件并获取文件内容
-3. 将文件内容丢给指令函数链
+3. 将文件内容丢给插件处理
 4. 返回生成的数据
 
 注意：如果在初始化时指定了 `mockRules` 字段，则 local-http-mock 忽略查找 mockrc.json。
@@ -237,7 +237,7 @@ localHttpMock({
 ```
 websocket 收到 onmessage 事件并将收到的数据解析为 url 后，剩下的过程就和 http 一致了。
 
-查找到本地文件后，文件内容和一些请求参数会丢给指令函数链处理。
+查找到本地文件后，文件内容和一些请求参数会丢给插件处理。
 <a name="plugins-and-directives"></a>
 
 ### 插件和指令
