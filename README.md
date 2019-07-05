@@ -14,6 +14,7 @@
 5. [文档](#documentation)
 6. [FAQ](#faq)
 7. [TODO](#todo)
+8. [LICENSE](#license)
 
 
 <a name="introduction"></a>
@@ -53,7 +54,7 @@ yarn add -D local-http-mock
 返回：兼容 express middleware 的函数，它接收 `(request, response, next)` 3 个参数。
 
 * `options` 初始化选项
-  * `.mockRules` mock 规则，如果指定了此选项，则忽略 mockrc.json，写法参考 mockrc.json
+  * `.mockRules` mock 规则，如果指定了此选项，则忽略 mockrc.json，写法参考 [mockrc.json](#mockrc-json)
   * `.cors` 是否跨域，默认为 true。也可以是一个 [cors middleware 接受的配置对象](https://github.com/expressjs/cors#configuration-options)
   * `.parseBody` 是否解析请求 body，默认为 true。也可以是一个 [body-parser 接受的配置对象](https://github.com/expressjs/body-parser)
   * `.parseCookie` 是否解析请求 cookie，默认为 true。也可以是一个 [cookie-parser 接受的配置对象](https://github.com/expressjs/cookie-parser)
@@ -224,3 +225,14 @@ local-http-mock 指令默认使用 `#<name>#` 格式命名，这是为了避免�
 
 ### 为什么要使用 local-http-mock？
 ### 使用 local-http-mock 我能做到什么？
+## LICENSE
+
+The MIT License (MIT)
+
+Copyright (c) 2019 593233820@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
