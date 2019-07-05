@@ -12,7 +12,7 @@
 * [安装](#installation)
 * [API](#api)
 * [文档](#documentation)
-  * [local-http-mock 是如何工作的？]()
+  * [local-http-mock 是如何工作的？](how-is-local-http-mock-work)
   * [配置文件 mockrc.json](#mockrc-json)
   * [如何查找 mock 文件？](#how-to-find-a-mock-file)
   * [插件和指令](#plugins-and-directives)
@@ -88,6 +88,8 @@ yarn add -D local-http-mock
 使用方法：
 ```js
 // webpack.config.js
+const localHttpMock = require("local-http-mock");
+
 module.exports = {
     devServer: {
         after: function(app){
@@ -105,6 +107,20 @@ module.exports = {
 * `app` [express Application 对象](https://expressjs.com/en/4x/api.html#app)
 * `devServer` webpack-dev-server 启动时，允许 webpack.config.js 里面 `devServer.before`, `devServer.after` 等获取到 devServer 对象，通常是 this 引用，在较新的版本里面，webpack-dev-server 提供了第二个参数用于获取 devServer
 * `options` 参考 `localHttpMock(options)` 里面的 options
+
+使用方法：
+```js
+// webpack.config.js
+const localHttpMock = require("local-http-mock");
+
+module.exports = {
+    devServer: {
+        after: function(app, server){
+            localHttpMock(app, server || this, options)
+        }
+    }
+};
+```
 <a name="documentation"></a>
 
 ## 文档
@@ -341,20 +357,20 @@ response 的内容为：
 匹配的本地文件为 `.data/x.json`：
 ```json
 {
-    result: {
-        x: "#$body.x#",
-        y: "#$body.y#",
-        xy: "#$body.x##$body.y#"
+    "result": {
+        "x": "#$body.x#",
+        "y": "#$body.y#",
+        "xy": "#$body.x##$body.y#"
     }
 }
 ```
 当经过变量替换后，内容如下：
 ```json
 {
-    result: {
-        x: "b",
-        y: [1, 2, 3],
-        xy: "b1,2,3"
+    "result": {
+        "x": "b",
+        "y": [1, 2, 3],
+        "xy": "b1,2,3"
     }
 }
 ```
@@ -381,7 +397,7 @@ status code 插件的主要功能是设置 response 状态码。
 #### ws-notify 插件
 支持的指令： `#notify#`
 
-*注意：该插件仅对 websocket 生效*
+**注意：该插件仅对 websocket 生效**
 
 ws-notify 插件的主要功能是经过固定延迟时间后主动发起一个服务器端 websocket 消息
 
@@ -440,6 +456,7 @@ axios.interceptors.request.use(function(config){
 * 变量替换获取更多的数据源，如：git 分支名称？
 * 让数据关联起来
 * 每个 url 有成功、失败等状态，添加一个 web 小工具，可以让用户动态选择使用哪个文件作为 url 的默认文件
+
 <a name="license"></a>
 
 ## LICENSE
