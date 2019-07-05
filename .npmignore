@@ -2,6 +2,7 @@ mockrc.json
 TODO
 tsconfig.json
 .vscode
+.travis.yml
 yarn.lock
 tests
 coverage
