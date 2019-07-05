@@ -3,7 +3,7 @@
  * to archieve more functions
  *
  */
-const directives = [
+const plugins = [
     require("./cookies"),
     require("./headers"),
     require("./if"),
@@ -13,7 +13,7 @@ const directives = [
     require("./ws-notify"),
     require("./mock")
 ];
-exports.parse = parseDirectives;
+exports.run = runPlugins;
 
 /**
  *
@@ -21,11 +21,11 @@ exports.parse = parseDirectives;
  * read values from it
  * @returns {Promise}
  */
-function parseDirectives(context) {
+function runPlugins(context) {
     context.next = true;
     let value = Promise.resolve(context);
-    for(let directive of directives) {
-        value = value.then(v => v.next ? directive.parse(v) : v);
+    for(let plugin of plugins) {
+        value = value.then(v => v.next ? plugin.parse(v) : v);
     }
     return value;
 };

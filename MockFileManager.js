@@ -4,7 +4,7 @@ const escapeStringRegexp = require('escape-string-regexp');
 const Promise = require("bluebird");
 const json5 = require("json5");
 const MagicNameMatcher = require("./MagicNameMatcher");
-const parseDirectives = require("./directives").parse;
+const runPlugins = require("./plugins").run;
 
 const readdirAsync = Promise.promisify(fs.readdir);
 const statAsync = Promise.promisify(fs.stat);
@@ -103,7 +103,7 @@ class MockFileFinder {
             }
         }).then(data => {
             context.data = data;
-            return Buffer.isBuffer(data) ? context : parseDirectives(context);
+            return Buffer.isBuffer(data) ? context : runPlugins(context);
         });
     }
     findAndMock(method, url, directory, context) {
