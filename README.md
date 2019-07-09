@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.com/mystorp/local-http-mock.svg?branch=master)](https://travis-ci.com/mystorp/local-http-mock)
 [![Coverage Status](https://coveralls.io/repos/github/mystorp/local-http-mock/badge.svg?branch=master)](https://coveralls.io/github/mystorp/local-http-mock?branch=master)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/mystorp/local-http-mock.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mystorp/local-http-mock/context:javascript)
 
 一个强大、方便的 http mock 库。
 
@@ -62,6 +63,11 @@ npm i -D local-http-mock
 或者
 ```
 yarn add -D local-http-mock
+```
+
+local-http-mock 暴露了一个简单的服务器命令: `http-mock-server`，让你可以无需任何配置即可快速的得到一个 mock server，所以，如果你觉得方便的话可以使用全局安装的方式：
+```
+npm i -g local-http-mock
 ```
 <a name="api"></a>
 

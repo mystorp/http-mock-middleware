@@ -8,11 +8,14 @@
     "test": "jest",
     "coveralls": "jest -i --coverage && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage && rm -rf ./tests/.data"
   },
+  "bin": {
+    "http-mock-server": "bin/server.js"
+  },
   "keywords": [
     "mock"
   ],
   "author": "593233820@qq.com",
-  "license": "ISC",
+  "license": "MIT",
   "jest": {
     "testEnvironment": "node"
   },
@@ -29,6 +32,8 @@
     "json5": "^2.1.0",
     "mkdirp": "^0.5.1",
     "mockjs": "^1.0.1-beta3",
+    "portfinder": "^1.0.20",
+    "sanitize-filename": "^1.6.1",
     "ws": "^7.0.0"
   },
   "devDependencies": {
