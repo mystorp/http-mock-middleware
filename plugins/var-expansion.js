@@ -1,4 +1,4 @@
-const { isObject, isArray, walkObject, getValueByPath } = require("../utils");
+const { walkObject, getValueByPath } = require("../utils");
 const varRe = /#\$([^#]+)#/ig;
 const oneVarRe = /^#\$([^#]+)#$/i;
 

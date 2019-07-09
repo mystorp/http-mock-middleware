@@ -1,5 +1,3 @@
-const fs = require("fs");
-const path = require("path");
 const url = require("url");
 const WebSocket = require("ws");
 const MockFileManager = require("../MockFileManager");

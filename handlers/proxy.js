@@ -5,6 +5,7 @@ const axios = require("axios");
 const Promise = require("bluebird");
 const { rotateFile } = require("../utils");
 const mkdirAsync = Promise.promisify(require("mkdirp"));
+const sanitize = require("sanitize-filename");
 /**
  * redirect request to `X-Mock-Proxy`
  */
@@ -59,6 +60,10 @@ function proxy2local(request, response, options) {
     let url = request.url;
     let dirname = path.dirname(url);
     let filename = path.basename(url);
+    // path injection
+    if(dirname.indexOf(".") > -1 || filename !== sanitize(filename)) {
+        throw new Error("invalid url");
+    }
     let filepath = path.resolve(
         options.saveDirectory + dirname,
         request.method.toLowerCase() + "-" + filename
