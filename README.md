@@ -59,16 +59,16 @@ http-mock-middleware 本身导出为一个兼容 express middleware 的函数，
 ## 安装
 
 ```
-npm i -D http-mock-middleware
+npm i -D hm-middleware
 ```
 或者
 ```
-yarn add -D http-mock-middleware
+yarn add -D hm-middleware
 ```
 
 http-mock-middleware 暴露了一个简单的服务器命令: `http-mock-server`，让你可以无需任何配置即可快速的得到一个 mock server，所以，如果你觉得方便的话可以使用全局安装的方式：
 ```
-npm i -g http-mock-middleware
+npm i -g hm-middleware
 ```
 <a name="api"></a>
 
