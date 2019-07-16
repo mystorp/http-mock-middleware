@@ -37,6 +37,8 @@
 
 http-mock-middleware 是一个 http mock 库，或者说 ajax/websocket mock 库，它接收来自 web 前端页面的 ajax/websocket 请求，将请求映射到本地 mock 文件并经过一系列插件处理后返回给 web 前端页面。http-mock-middleware 内建了多个插件以实现各种各样的功能，比如：根据 query 参数等的不同响应不同的数据，按需将请求转发给后端服务器，延迟响应，设置 cookie，主动向 websocket 客户端发送数据等。
 
+什么是本地 mock 文件？就是用于存放对应请求的假数据文件，比如要将请求 `/login` 映射为本地假数据文件 `.data/login.json`，就称 `.data/login.json` 为 mock 文件。
+
 http-mock-middleware 本身导出为一个兼容 express middleware 的函数，因此你可以很方便的集成到 webpack-dev-server, vue-cli-service, express 等现有服务器中。
 <a name="features"></a>
 
@@ -83,7 +85,7 @@ npm i -g http-mock-middleware
   * `.parseCookie` 是否解析请求 cookie，默认为 true。也可以是一个 [cookie-parser 接受的配置对象](https://github.com/expressjs/cookie-parser)
   * `.server` `http.Server` 对象，当需要启用 websocket 时，这个是必选项。
   * `.websocket` 用于 websocket 消息处理的选项，如果启用了 websocket , 这个选项是必须的。
-    * `.decodeMessage` 函数。收到 websocket 消息后，需要将消息对象先映射为 url，再映射为本地 mock 文件。这个函数用于将消息对象解析为 url
+    * `.decodeMessage` 函数。收到 websocket 消息后，需要将消息对象先映射为 url，再映射为本地 mock 文件。这个函数用于将消息对象解析为 url，这个函数也可以返回一个对象：`{url: string: args: any}`，args 表示要传递给插件上下文 args 的数据。
     * `.encodeMessage` 函数。处理完本地 mock 文件后，需要将生成的内容转换为 websocket 客户端可以理解的消息格式。它接受两个参数：`(error, data)`。如果在处理本地 mock 文件的过程中发生任何错误，error 被设置为该错误，此时 data 为空；如果处理过程成功，则 data 对象被设置为最终的生成数据，此时 error 为空。注意：如果映射的本地 mock 文件是 json，则 data 对象为 json 对象，如果映射的是非 json 对象，则 data 对象为包含文件内容的 Buffer 对象；由于 `websocket.send()` 方法仅仅接受 `String`, `Buffer`, `TypedArray` 等对象，因此你有必要返回正确的数据。
   * `.proxy` 当收到的请求包含 X-Mock-Proxy 头时，请求将被转发到该头所指向的服务器 url
     * `.autoSave` 是否自动将代理的内容保存为本地 mock 文件，默认为 false

@@ -73,8 +73,10 @@ interface MockOptions {
         /**
          * 收到来自前端页面的消息后，数据经过此函数处理并返回对应的 url,
          * 服务器将此 url 映射为本地 mock 文件
+         * 也可以返回一个对象：{url: string, args: any}, args 表示插件上下
+         * 文环境对象里面的 args
          */
-        decodeMessage(json: any): string;
+        decodeMessage(json: any): string | {url: string, args: any};
     },
     /**
      * 当收到的请求包含 X-Mock-Proxy 头时，请求将被转发到该头所指向的服务器，前端可以

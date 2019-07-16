@@ -44,7 +44,8 @@ describe("websocket mock test", function(){
                     // receive json
                     decodeMessage: function(msg){
                         msg = JSON.parse(msg);
-                        return `/${msg.type}/${msg.method}`;
+                        msg.url = `/${msg.type}/${msg.method}`;
+                        return msg;
                     }
                 }
             }));
@@ -131,36 +132,37 @@ describe("websocket mock test", function(){
     });
     test("websocket support #notify#", function(done){
         let socket = new WebSocket(currentBaseUrl + "/ws");
-        let msg = {
-            "#notify#": "/file/notify-data"
-        }, i = 0;
+        let i = 0, notifyStart;
         socket.on("open", function(){
-            mockFile("/file/notify.json", JSON.stringify(msg));
-            mockFile("/file/notify-data", "notify-data");
-            socket.send(JSON.stringify({type: "file", method: "notify"}));
+            mockFile("/file/notify1.json", JSON.stringify({
+                "#notify#": "/file/notify2.json",
+                "from": "notify1"
+            }));
+            mockFile("/file/notify2.json", JSON.stringify({
+                "#notify#": {
+                    url: "/file/notify3.json",
+                    delay: 500,
+                    args: {from: "notify2"}
+                },
+                from: "notify2"
+            }));
+            mockFile("/file/notify3.json", JSON.stringify({from: "#$args.from#"}));
+            socket.send(JSON.stringify({type: "file", method: "notify1"}));
         });
         socket.on("message", function(e){
             i++;
-            if(i !== 2) { return; }
-            expect(Buffer.from(e, "base64").toString()).toBe("notify-data");
-            socket.close();
-            done();
+            let data = JSON.parse(Buffer.from(e, "base64").toString());
+            if(i === 1) {
+                expect(data).toEqual({from: "notify1"});
+            } else if(i === 2) {
+                expect(data).toEqual({from: "notify2"});
+                notifyStart = Date.now();
+            } else if(i === 3) {
+                expect(data).toEqual({from: "notify2"});
+                expect(Date.now() - notifyStart).toBeGreaterThan(500);
+                socket.close();
+                done();
+            }
         });
     });
-    // TODO: get this done
-    /*
-    test("mock invalid file will throw", function(done){
-        let socket = new WebSocket(currentBaseUrl + "/ws");
-        let msg = "";
-        socket.on("open", function(){
-            mockFile("/file/some/file", msg);
-            socket.send(JSON.stringify({type: "file", method: "some"}));
-        });
-        socket.on("message", function(e){
-            expect(Buffer.from(e, "base64")).toMatch(/^Error: /);
-            socket.close();
-            done();
-        });
-    });
-    */
 });

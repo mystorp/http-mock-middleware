@@ -97,8 +97,13 @@ function walkObject(obj, fn) {
 function getValueByPath(obj, path) {
     if(!isObject(obj) || !path) { return obj; }
     let parts = path.split(".");
-    while(parts.length > 0 && obj && obj.hasOwnProperty(parts[0])) {
-        obj = obj[parts.shift()];
+    while(parts.length > 0) {
+        let key = parts.shift();
+        if(obj && obj.hasOwnProperty(key)) {
+            obj = obj[key];
+        } else {
+            obj = undefined;
+        }
     }
     return typeof obj === "undefined" ? "" : obj;
 }

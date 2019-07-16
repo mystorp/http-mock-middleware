@@ -11,14 +11,17 @@ module.exports = function(options, rules){
         websocketServers[url] = new WebSocket.Server({ noServer: true });
         websocketServers[url].on("connection", function(ws){
             ws.on("message", function(msg){
-                let localUrl = websocketOptions.decodeMessage(msg);
-                if(localUrl.charAt(0) !== "/") {
-                    localUrl = "/" + localUrl;
+                let request = websocketOptions.decodeMessage(msg);
+                if(typeof request === "string") {
+                    if(request.charAt(0) !== "/") {
+                        request = "/" + request;
+                    }
+                    request = {url: request};
                 }
-                return onMessageHandler.call(ws, localUrl, rootDirectory, websocketOptions);
+                return onMessageHandler.call(ws, request, rootDirectory, websocketOptions);
             });
             MockFileManager.find("", "/__greeting__", rootDirectory).then(() => {
-                onMessageHandler.call(ws, "/__greeting__", rootDirectory, websocketOptions);
+                onMessageHandler.call(ws, {url: "/__greeting__"}, rootDirectory, websocketOptions);
             }, () => {/* ignore */});
         });
     });
@@ -35,11 +38,11 @@ module.exports = function(options, rules){
     });
 };
 
-function onMessageHandler(url, rootDirectory, options, extraArgs) {
+function onMessageHandler(request, rootDirectory, options) {
     let ws = this;
-    MockFileManager.findAndMock("", url, rootDirectory, {
+    MockFileManager.findAndMock("", request.url, rootDirectory, {
         websocket: true,
-        args: extraArgs
+        args: request.args
     }).then(function(value){
         let data = value.data;
         let msg = options.encodeMessage(null, data);
@@ -57,7 +60,7 @@ function onMessageHandler(url, rootDirectory, options, extraArgs) {
 function createNotifies(ws, notifies, rootDirectory, options) {
     for(let notify of notifies) {
         setTimeout(function(){
-            onMessageHandler.call(ws, notify.url, notify.dir || rootDirectory, options, notify.args);
+            onMessageHandler.call(ws, notify, notify.dir || rootDirectory, options);
         }, notify.delay);
     }
 }
