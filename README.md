@@ -47,13 +47,14 @@ http-mock-middleware 本身导出为一个兼容 express middleware 的函数，
 * 支持任意 http 方法和任意 url 格式
 * 支持 mock 任意文件
 * mock json 文件时，支持 [mockjs](http://mockjs.com/examples.html) 语法,  [json5](https://json5.org/) 语法
-* mock json 文件时，支持根据 query, body, headers, cookie 等信息按需响应；
+* mock json 文件时，支持根据 query, body, headers, cookie 等信息按需响应
 * mock json 文件时，支持设置 cookie、http 头、http 状态码
 * mock json 文件时，支持响应延时，杀掉请求，请求数据引用
 * 支持将 websocket onmessage 事件映射到本地 mock 文件
 * 支持主动发送 websocket 消息
 * 支持无重启代理后端服务器，支持将代理的后端服务器内容保存为本地 mock 文件
 * 无缝对接 webpack-dev-server, vue-cli-service, express 等
+* ~~支持一键导入 har, swagger 为本地 mock 文件~~comming soon
 <a name="installation"></a>
 
 ## 安装
@@ -95,7 +96,7 @@ npm i -g hm-middleware
 使用方法：
 ```js
 // webpack.config.js
-const middleware = require("http-mock-middleware");
+const middleware = require("hm-middleware");
 
 module.exports = {
     devServer: {
@@ -118,7 +119,7 @@ module.exports = {
 使用方法：
 ```js
 // webpack.config.js
-const middleware = require("http-mock-middleware");
+const middleware = require("hm-middleware");
 
 module.exports = {
     devServer: {
@@ -229,7 +230,7 @@ GET /groups/23/user/11/score
 
 上面就是收到 http 请求时的匹配过程， websocket 的匹配过程基本一致，但与 http 不同的是，websocket 并不存在 url 一说，当我们收到 onmessage 事件时，我们收到的可能是任意格式的数据，它们不是 url，因此在 http-mock-middleware 初始化时提供了将收到的数据转换为 url 的选项：
 ```javascript
-const middleware = require("http-mock-middleware");
+const middleware = require("hm-middleware");
 middleware({
     server: currentServer,
     websocket: {
