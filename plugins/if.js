@@ -4,7 +4,22 @@ const ifRe = /^#if:(.*?)#$/;
 
 exports.name = "if";
 
-exports.parse = function(context) {
+exports.parse = function(context){
+    while(true) {
+        let ifKeys = Object.keys(context.data).filter(function(key){
+            return ifRe.test(key);
+        });
+        if(ifKeys.length > 0) {
+            context = runIf(context);
+        } else {
+            delete context.data["#default#"];
+            break;
+        }
+    }
+    return context;
+};
+
+function runIf(context) {
     let data = context.data;
     let request = context.request;
     let args = data["#args#"];

@@ -67,6 +67,20 @@ describe("test if plugin", function(){
             }
         }).data).toEqual({});
     });
+    test("nested #if#", function(){
+        expect(ifPlugin.parse({
+            data: {
+                "#if:query.x === 1#": {
+                    "#if:query.y === 2#": {
+                        "result": 3
+                    }
+                }
+            },
+            request: {
+                query: {x: 1, y: 2}
+            }
+        }).data).toEqual({result: 3});
+    });
     test("#args# will work", function(){
         let mycontext = {
             data: {
