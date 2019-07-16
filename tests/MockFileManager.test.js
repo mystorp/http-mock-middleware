@@ -128,4 +128,19 @@ describe("test mock function:", function(){
             MockFileManager.mock(filepath).then(json => JSON.stringify(json.data))
         ).resolves.toBe(JSON.stringify({json5: "yes"}));
     });
+	const jsonValue = {
+		"null": null,
+		"number": 12,
+		"array": [1, 2],
+		"boolean": true,
+		"string": "string",
+		"object": {}
+	};
+	Object.keys(jsonValue).forEach(key => {
+		let value = jsonValue[key];
+		test(`mock json value: ${JSON.stringify(value)}`, function(){
+			let filepath = mockFile(`/json/${key}.json`, JSON.stringify(value));
+			return expect(MockFileManager.mock(filepath).then(x => x.data)).resolves.toEqual(value);
+		});
+	});
 });

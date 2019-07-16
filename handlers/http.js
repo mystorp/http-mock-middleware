@@ -43,11 +43,11 @@ function doResponse(req, resp, url, rootDirectory, next) {
     }).then(function(value){
         if(resp.destroyed) { return; }
         let data = value.data;
-        if(typeof data === "object") {
-            if(!Buffer.isBuffer(data)) {
-                return resp.json(data);
-            }
-        }
-        resp.end(value.data);
+		// data maybe any valid json value: Boolean, Null, Number, Array
+		if(!Buffer.isBuffer(data)) {
+			return resp.json(data);
+		} else {
+	        resp.end(data);
+		}
     });
 }
