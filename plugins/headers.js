@@ -5,6 +5,7 @@ exports.name = "headers";
 exports.parse = function(context){
     if(context.websocket) { return context; }
     let data = context.data;
+	if(!data) { return context; }
     let response = context.response;
     let myHeaders = data["#headers#"];
     delete data["#headers#"];

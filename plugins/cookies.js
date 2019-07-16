@@ -4,6 +4,7 @@ exports.name = "cookies";
 exports.parse = function(context){
     if(context.websocket) { return context; }
     let data = context.data;
+	if(!data) { return context; }
     let cookies = data["#cookies#"];
     delete data["#cookies#"];
     if(!cookies) { return context; }

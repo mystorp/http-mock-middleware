@@ -6,6 +6,7 @@ exports.name = "if";
 
 exports.parse = function(context) {
     let data = context.data;
+	if(!data) { return context; }
     let request = context.request;
     let args = data["#args#"];
     if(context.args) {

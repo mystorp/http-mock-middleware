@@ -4,6 +4,7 @@ exports.parse = function(context){
     let response = context.response;
     if(context.websocket || !response) { return context; }
     let data = context.data;
+	if(!data) { return context; }
     let kill = data["#kill#"];
     let code = data["#code#"];
     delete data["#kill#"];
