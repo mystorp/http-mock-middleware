@@ -68,8 +68,9 @@ interface MockOptions {
          * 当 mock 文件时其它文件时，第二个参数收到的是 Buffer 对象
          * 注意：由于 `websocket.send()` 方法仅支持发送 string, Buffer, TypedArray 等
          * 因此你有必要处理好返回的数据
+         * 第三个参数是收到本次消息事件后 decodeMessage() 返回的结果
          */
-        encodeMessage(error: Error, msg: Buffer|Object): any;
+        encodeMessage(error: Error, msg: Buffer|Object, decodedMsg): any;
         /**
          * 收到来自前端页面的消息后，数据经过此函数处理并返回对应的 url,
          * 服务器将此 url 映射为本地 mock 文件

@@ -86,7 +86,7 @@ npm i -g hm-middleware
   * `.server` `http.Server` 对象，当需要启用 websocket 时，这个是必选项。
   * `.websocket` 用于 websocket 消息处理的选项，如果启用了 websocket , 这个选项是必须的。
     * `.decodeMessage` 函数。收到 websocket 消息后，需要将消息对象先映射为 url，再映射为本地 mock 文件。这个函数用于将消息对象解析为 url，这个函数也可以返回一个对象：`{url: string: args: any}`，args 表示要传递给插件上下文 args 的数据。
-    * `.encodeMessage` 函数。处理完本地 mock 文件后，需要将生成的内容转换为 websocket 客户端可以理解的消息格式。它接受两个参数：`(error, data)`。如果在处理本地 mock 文件的过程中发生任何错误，error 被设置为该错误，此时 data 为空；如果处理过程成功，则 data 对象被设置为最终的生成数据，此时 error 为空。注意：如果映射的本地 mock 文件是 json，则 data 对象为 json 对象，如果映射的是非 json 对象，则 data 对象为包含文件内容的 Buffer 对象；由于 `websocket.send()` 方法仅仅接受 `String`, `Buffer`, `TypedArray` 等对象，因此你有必要返回正确的数据。
+    * `.encodeMessage` 函数。处理完本地 mock 文件后，需要将生成的内容转换为 websocket 客户端可以理解的消息格式。它接受三个参数：`(error, data, decodedMsg)`。如果在处理本地 mock 文件的过程中发生任何错误，error 被设置为该错误，此时 data 为空；如果处理过程成功，则 data 对象被设置为最终的生成数据，此时 error 为空。注意：如果映射的本地 mock 文件是 json，则 data 对象为 json 对象，如果映射的是非 json 对象，则 data 对象为包含文件内容的 Buffer 对象；由于 `websocket.send()` 方法仅仅接受 `String`, `Buffer`, `TypedArray` 等对象，因此你有必要返回正确的数据。第三个参数表示收到本次消息事件后 decodeMessage() 返回的数据。
   * `.proxy` 当收到的请求包含 X-Mock-Proxy 头时，请求将被转发到该头所指向的服务器 url
     * `.autoSave` 是否自动将代理的内容保存为本地 mock 文件，默认为 false
     * `.saveDirectory` 如果需要自动保存，这个选项指定保存的目录，一般使用 mockRules 配置的 dir 就可以了。

@@ -45,13 +45,13 @@ function onMessageHandler(request, rootDirectory, options) {
         args: request.args
     }).then(function(value){
         let data = value.data;
-        let msg = options.encodeMessage(null, data);
+        let msg = options.encodeMessage(null, data, request);
         ws.send(msg);
         let notifies = value.notifies;
         if(!(notifies && Array.isArray(notifies))) { return; }
         createNotifies(ws, notifies, rootDirectory, options);
     }, function(error){
-        let msg = options.encodeMessage(error);
+        let msg = options.encodeMessage(error, null, request);
         ws.send(msg);
     });
 }
