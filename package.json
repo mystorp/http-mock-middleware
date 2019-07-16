@@ -1,6 +1,6 @@
 {
-  "name": "local-http-mock",
-  "version": "1.0.8",
+  "name": "http-mock-middleware",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "types": "index.d.ts",
