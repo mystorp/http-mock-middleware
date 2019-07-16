@@ -5,6 +5,7 @@ const ifRe = /^#if:(.*?)#$/;
 exports.name = "if";
 
 exports.parse = function(context){
+    if(!context.data) { return context; }
     while(true) {
         let ifKeys = Object.keys(context.data).filter(function(key){
             return ifRe.test(key);
