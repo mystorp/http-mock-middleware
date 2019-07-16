@@ -4,6 +4,7 @@
  *
  */
 const plugins = [
+    require("./description"),
     require("./cookies"),
     require("./headers"),
     require("./if"),
