@@ -54,7 +54,7 @@ http-mock-middleware 本身导出为一个兼容 express middleware 的函数，
 * 支持主动发送 websocket 消息
 * 支持无重启代理后端服务器，支持将代理的后端服务器内容保存为本地 mock 文件
 * 无缝对接 webpack-dev-server, vue-cli-service, express 等
-* ~~支持一键导入 har, swagger 为本地 mock 文件~~comming soon
+* 支持一键导入 har 为本地 mock 文件
 <a name="installation"></a>
 
 ## 安装
@@ -455,7 +455,14 @@ axios.interceptors.request.use(function(config){
 <a name="faq"></a>
 
 ## FAQ
-我觉得我已经很啰嗦了，先空着。
+### 数据迁移？
+http-mock-middleware 提供了几种数据迁移的方式：
+1. 使用 proxy，并将实际的后端数据保存为 mock 文件，这种方式最简单，后面需要对数据做 mock 的时候，稍微修改一下就可以了
+2. 使用导入命令导入 har 格式的数据，chrome devtools 可以将捕获的请求保存为 har 格式的文件，保存后导入就可以了，比如：
+
+```
+http-mock-import -f har -d .data some.har
+```
 
 <a name="todo"></a>
 

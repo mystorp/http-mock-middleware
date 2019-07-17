@@ -1,44 +1,61 @@
 #!/usr/bin/env node
 
-const argv = require("yargs").argv;
+const fs = require("fs");
+const _readFile = (f) => fs.readFileSync(f);
+const argv = require("yargs").usage("http-mock-server [Options]").options({
+    port: {
+        alias: "p",
+        default: 8080,
+        describe: "Port to use"
+    },
+    host: {
+        alias: "h",
+        default: "0.0.0.0",
+        describe: "Host to use"
+    },
+    dir: {
+        alias: "d",
+        default: ".data",
+        describe: "Root directory that mock data is served from"
+    },
+    ssl: {
+        alias: "S",
+        default: false,
+        boolean: true,
+        describe: "Enable https"
+    },
+    cert: {
+        alias: "C",
+        default: "cert.pem",
+        coerce: _readFile,
+        describe: "Path to ssl cert file"
+    },
+    key: {
+        alias: "K",
+        default: "key.pem",
+        coerce: _readFile,
+        describe: "Path to ssl key file"
+    },
+    passphrase: {
+        alias: "p",
+        describe: "Passphrase of private key"
+    }
+}).argv;
 const portfinder = require("portfinder");
 
-if(argv.h || argv.help) {
-    usage();
-} else {
-    startServer(makeOptions(argv));
-}
-
-function usage(){
-    console.log("usage: http-server [options]"); console.log(""); console.log("options:");
-    console.log("  -p --port    Port to use (default: 8080)");
-    console.log("  -a --addr    Address to use (default: 0.0.0.0)");
-    console.log("  -d --dir     Root directory to serve from (default: PWD)");
-    console.log("  -S --ssl     Enable https.");
-    console.log("  -C --cert    Path to ssl cert file (default: cert.pem).");
-    console.log("  -K --key     Path to ssl key file (default: key.pem).");
-    console.log("  -h --help");
-}
-
-function makeOptions(argv){
-    return {
-        port: argv.p || argv.port || 8080,
-        address: argv.a || argv.addr || "0.0.0.0",
-        dir: argv.d || argv.dir || process.cwd(),
-        ssl: argv.S || argv.ssl || false,
-        cert: argv.C || argv.cert,
-        key: argv.K || argv.key
-    };
-}
+startServer(argv);
 
 function startServer(options){
     const express = require("express");
-    const localHttpMock = require("..");
+    const httpMockMiddleware = require("..");
     const app = express();
-    app.use("/", localHttpMock());
+    app.use("/", httpMockMiddleware({
+        mockRules: {"/": options.dir}
+    }));
     const serverOptions = options.ssl ? {
         cert: options.cert,
-        key: options.key
+        key: options.key,
+        passphrase: options.passphrase
     } : {};
     const server = require(
         options.ssl ? "https" : "http"
@@ -60,7 +77,7 @@ function showAddresses(options){
     let prefix = "it started at: ";
     let protocol = ssl ? "https" : "http";
     let addressArray = [];
-    if(options.address === "0.0.0.0") {
+    if(options.host === "0.0.0.0") {
         let ifaces = require("os").networkInterfaces();
         for(let name of Object.keys(ifaces)) {
             for(let dev of ifaces[name]) {
@@ -70,7 +87,7 @@ function showAddresses(options){
             }
         }
     } else {
-        addressArray.push(options.address);
+        addressArray.push(options.host);
     }
     for(let address of addressArray) {
         console.log(`${prefix}${protocol}://${address}:${port}`);
