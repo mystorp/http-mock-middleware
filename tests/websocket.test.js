@@ -14,6 +14,7 @@ afterAll(function(){
 
 describe("websocket mock test", function(){
     let currentApp, currentServer, currentBaseUrl;
+    let setupSocketIsCalled = false;
     beforeAll(function(done){
         currentApp = express();
         currentServer = currentApp.listen(function(){
@@ -28,6 +29,9 @@ describe("websocket mock test", function(){
                 },
                 server: currentServer,
                 websocket: {
+                    setupSocket: function(){
+                        setupSocketIsCalled = true;
+                    },
                     // send base64
                     encodeMessage: function(error, msg){
                         if(error) {
@@ -56,6 +60,20 @@ describe("websocket mock test", function(){
     afterAll(function(){
         currentServer.close();
         currentApp = currentServer = currentBaseUrl = null;
+    });
+
+    test("setupSocket option will be called", function(done){
+        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let msg = JSON.stringify({aa: 32, hello: "world!"});
+        socket.on("open", function(){
+            mockFile("/file/my1.json", msg);
+            socket.send(JSON.stringify({type: "file", method: "my1"}));
+        });
+        socket.on("message", function(e){
+            expect(setupSocketIsCalled).toBe(true);
+            socket.close();
+            done();
+        });
     });
 
     test("mock json file will read and parse", function(done){
