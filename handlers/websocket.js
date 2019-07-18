@@ -8,8 +8,23 @@ module.exports = function(options, rules){
     let websocketServers = {};
     rules.forEach(rule => {
         let {url, rootDirectory} = rule;
-        websocketServers[url] = new WebSocket.Server({ noServer: true });
+        options.serverOptions = options.serverOptions || {};
+        let serverOptions = {noServer: true};
+        let validServerOptions = [
+            "verifyClient",
+            "handleProtocols",
+            "clientTracking",
+            "perMessageDeflate",
+            "maxPayload"
+        ];
+        for(let key of validServerOptions) {
+            serverOptions[key] = options.serverOptions[key];
+        }
+        websocketServers[url] = new WebSocket.Server(serverOptions);
         websocketServers[url].on("connection", function(ws){
+            if(typeof options.setupSocket === "function") {
+                options.setupSocket(ws);
+            }
             ws.on("message", function(msg){
                 let request = websocketOptions.decodeMessage(msg);
                 if(typeof request === "string") {

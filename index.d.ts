@@ -62,6 +62,15 @@ interface MockOptions {
      */
     websocket?: {
         /**
+         * 当有新的 websocket 连接时执行的钩子函数
+         */
+        setupSocket(socket): never;
+        /**
+         * 参考：https://github.com/websockets/ws/blob/HEAD/doc/ws.md#new-websocketserveroptions-callback
+         * 有效的选项包括：verifyClient, handleProtocols, clientTracking, perMessageDeflate, maxPayload
+         */
+        serverOptions: {},
+        /**
          * 找到并读取完 mock 文件后，数据经过此函数处理后返回给前端页面
          * 当查找或读取文件发生错误时，第一个参数指定了具体的错误信息
          * 当 mock 文件是 json 时，第二个参数收到的是 json 对象
