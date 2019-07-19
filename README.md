@@ -84,8 +84,10 @@ npm i -g hm-middleware
   * `.cors` 是否跨域，默认为 true。也可以是一个 [cors middleware 接受的配置对象](https://github.com/expressjs/cors#configuration-options)
   * `.parseBody` 是否解析请求 body，默认为 true。也可以是一个 [body-parser 接受的配置对象](https://github.com/expressjs/body-parser)
   * `.parseCookie` 是否解析请求 cookie，默认为 true。也可以是一个 [cookie-parser 接受的配置对象](https://github.com/expressjs/cookie-parser)
-  * `.server` `http.Server` 对象，当需要启用 websocket 时，这个是必选项。
   * `.websocket` 用于 websocket 消息处理的选项，如果启用了 websocket , 这个选项是必须的。
+    * `.server` `http.Server` 对象，当需要启用 websocket 时，这个是必选项。
+    * `.serverOptions` WebSocketServer 初始化选项，参考 [ws api](https://github.com/websockets/ws/blob/HEAD/doc/ws.md#new-websocketserveroptions-callback)
+    * `.setupSocket(socket: WebSocket)` 当有新的 websocket 连接时执行的钩子函数。
     * `.decodeMessage` 函数。收到 websocket 消息后，需要将消息对象先映射为 url，再映射为本地 mock 文件。这个函数用于将消息对象解析为 url，这个函数也可以返回一个对象：`{url: string: args: any}`，args 表示要传递给插件上下文 args 的数据。
     * `.encodeMessage` 函数。处理完本地 mock 文件后，需要将生成的内容转换为 websocket 客户端可以理解的消息格式。它接受三个参数：`(error, data, decodedMsg)`。如果在处理本地 mock 文件的过程中发生任何错误，error 被设置为该错误，此时 data 为空；如果处理过程成功，则 data 对象被设置为最终的生成数据，此时 error 为空。注意：如果映射的本地 mock 文件是 json，则 data 对象为 json 对象，如果映射的是非 json 对象，则 data 对象为包含文件内容的 Buffer 对象；由于 `websocket.send()` 方法仅仅接受 `String`, `Buffer`, `TypedArray` 等对象，因此你有必要返回正确的数据。第三个参数表示收到本次消息事件后 decodeMessage() 返回的数据。
   * `.proxy` 当收到的请求包含 X-Mock-Proxy 头时，请求将被转发到该头所指向的服务器 url
@@ -100,35 +102,28 @@ const middleware = require("hm-middleware");
 
 module.exports = {
     devServer: {
-        after: function(app){
-            // 如果仅仅使用 http mock，这样写就可以了
-            app.use(middleware(options));
-            // 如果需要支持 websocket，需要使用下面的提供 API
-        }
-    }
-};
-```
-
-### `middleware.bindWebpack(app, devServer, options)`
-如果你需要使用 websocket + webpack，才需要使用此 API。
-
-* `app` [express Application 对象](https://expressjs.com/en/4x/api.html#app)
-* `devServer` webpack-dev-server 启动时，允许 webpack.config.js 里面 `devServer.before`, `devServer.after` 等获取到 devServer 对象，通常是 this 引用，在较新的版本里面，webpack-dev-server 提供了第二个参数用于获取 devServer
-* `options` 参考 `middleware(options)` 里面的 options
-
-使用方法：
-```js
-// webpack.config.js
-const middleware = require("hm-middleware");
-
-module.exports = {
-    devServer: {
         after: function(app, server){
-            middleware(app, server || this, options)
+            // 如果仅仅使用 http mock，这样写就可以了
+            app.use(middleware({
+                mockRules: {
+                    "/": ".data",
+                    "/ws/app1": {
+                        type: "websocket",
+                        dir: ".data/app1"
+                    }
+                },
+                // 如果需要支持 websocket，需要提供下面的选项
+                websocket: {
+                    server: server || this,
+                    encodeMessage: function(){},
+                    decodeMessage: function(){}
+                }
+            }));
         }
     }
 };
 ```
+
 <a name="documentation"></a>
 
 ## 文档
@@ -149,21 +144,21 @@ http-mock-middleware 按照如下顺序工作：
 mockrc.json 指定了 url前缀 和 本地 mock 目录的对应关系，如：
 ```json
 {
-    "/oa": ".data/oa-data",
-    "/auth": ".data/auth-data",
-    "/ws": {
+    "/oa": ".data/oa-app",
+    "/auth": ".data/auth-app",
+    "/ws/app1": {
         "type": "websocket",
-        "dir": ".data/websocket"
+        "dir": ".data/websocket-app1"
     }
 }
 ```
 上面的配置说明：
 
-所有 url 前缀为 `/oa/` 的 http 请求在 `.data/oa-data` 目录查找 mock 文件，如：请求 `GET /oa/version` 优先映射为 `.data/oa-data/oa/get-version`
+所有 url 前缀为 `/oa/` 的 http 请求在 `.data/oa-app` 目录查找 mock 文件，如：请求 `GET /oa/version` 优先映射为 `.data/oa-app/oa/get-version`
 
-所有 url 前缀为 `/auth/` 的 http 请求在 `.data/auth-data` 目录查找 mock 文件，如：请求 `POST /auth/login` 优先映射为 `.data/auth-data/auth/post-login`
+所有 url 前缀为 `/auth/` 的 http 请求在 `.data/auth-app` 目录查找 mock 文件，如：请求 `POST /auth/login` 优先映射为 `.data/auth-app/auth/post-login`
 
-在 url `/ws` 上监听 websocket 请求，并在收到 `onmessage` 事件后将收到的数据映射为 url, 然后在 `.data/websocket` 目录查找 mock 文件。
+在 url `/ws/app1` 上监听 websocket 请求，并在收到 `onmessage` 事件后将收到的数据映射为 url, 然后在 `.data/websocket-app1` 目录查找 mock 文件。
 
 上面提到了优先映射，你可以在下一章节找到优先映射的含义。
 
@@ -213,6 +208,8 @@ http-mock-middleware 支持下面的模糊匹配：
 |模式|示例|
 |-|-|
 |`[number]`|1, 32, 3232|
+|`[date]`|2019-03-10|
+|`[time]`|11:29:11|
 |`[ip]`|127.0.0.1, 192.168.1.134|
 |`[email]`|xx@yy.com|
 |`[uuid]`|45745c60-7b1a-11e8-9c9c-2d42b21b1a3e|
