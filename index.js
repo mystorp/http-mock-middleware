@@ -25,8 +25,8 @@ let middleware = module.exports = function(middlewareOptions){
 	}
     let websocketRules = mockRules.filter(rule => rule.type === "websocket");
     middlewareOptions = middlewareOptions || {};
-    if(websocketRules.length > 0 && enableWebsocket(middlewareOptions)) {
-        require("./handlers/websocket")(middlewareOptions, websocketRules);
+    if(websocketRules.length > 0 && enableWebsocket(middlewareOptions.websocket)) {
+        require("./handlers/websocket")(middlewareOptions.websocket, websocketRules);
     }
     return function(req, resp, next){
         let proxy = req.get("X-Mock-Proxy");
@@ -38,19 +38,12 @@ let middleware = module.exports = function(middlewareOptions){
     };
 };
 
-middleware.bindWebpack = function(app, devServer, options){
-    // webpack-dev-server apply middlewares earlier than creating http server
-    process.nextTick(() => {
-        let server = devServer.listeningApp;
-        app.use("/", middleware(Object.assign({server}, options)));
-    });
-};
-
 function enableWebsocket(options) {
-    let {server, websocket} = options;
-    return server && typeof server.listen === "function"
-        && websocket && typeof websocket.encodeMessage === "function"
-        && typeof websocket.decodeMessage === "function";
+    let { server, encodeMessage, decodeMessage } = options || {};
+    return  server &&
+            typeof server.listen === "function" &&
+            typeof encodeMessage === "function" &&
+            typeof decodeMessage === "function";
 }
 
 

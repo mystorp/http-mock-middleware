@@ -54,22 +54,22 @@ interface MockOptions {
         }
     },
     /**
-     * 当需要启用 websocket 时，这个是必选项。
-     */
-    server?: Server,
-    /**
      * 用于 websocket 消息处理的选项，如果启用了 websocket , 这个选项是必须的。
      */
     websocket?: {
         /**
-         * 当有新的 websocket 连接时执行的钩子函数
+         * 当需要启用 websocket 时，这个是必选项。
          */
-        setupSocket(socket): never;
+        server?: Server,
         /**
          * 参考：https://github.com/websockets/ws/blob/HEAD/doc/ws.md#new-websocketserveroptions-callback
          * 有效的选项包括：verifyClient, handleProtocols, clientTracking, perMessageDeflate, maxPayload
          */
         serverOptions: {},
+        /**
+         * 当有新的 websocket 连接时执行的钩子函数
+         */
+        setupSocket(socket): never;
         /**
          * 找到并读取完 mock 文件后，数据经过此函数处理后返回给前端页面
          * 当查找或读取文件发生错误时，第一个参数指定了具体的错误信息

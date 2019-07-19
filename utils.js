@@ -8,6 +8,7 @@ exports.rotateFile = rotateFile;
 exports.callMiddleware = callMiddleware;
 exports.walkObject = walkObject;
 exports.getValueByPath = getValueByPath;
+exports.copyKeys = copyKeys;
 
 const toString = Object.prototype.toString;
 const isObject = isType.bind(null, "Object");
@@ -106,4 +107,15 @@ function getValueByPath(obj, path) {
         }
     }
     return typeof obj === "undefined" ? "" : obj;
+}
+
+function copyKeys(src, keys, ...dests){
+    for(let dest of dests) {
+        for(let key of keys) {
+            if(dest.hasOwnProperty(key)) {
+                src[key] = dest[key];
+            }
+        }
+    }
+    return src;
 }
