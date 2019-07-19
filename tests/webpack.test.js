@@ -1,18 +1,17 @@
-const fs = require("fs");
 const path = require("path");
-const axios = require("axios");
+const axios = require("axios").create();
 const webpack = require("webpack");
 const webpackDevServer = require("webpack-dev-server");
-const localHttpMock = require("../");
-const rimraf = require("rimraf");
+const httpMockMiddleware = require("../");
 const WebSocket = require("ws");
+const { setup } = require("./utils");
 
 const mockDirectoryPrefix = "tests/.data/webpack";
-const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
+const mockFile = setup(mockDirectoryPrefix);
 
 let devServer;
 beforeAll(function(done){
-    mockFile("/index.js", "console.log('hello, local-http-mock')");
+    mockFile("/index.js", "console.log('hello, http-mock-middleware')");
     let compiler = webpack({
         mode: "development",
         watch: false,
@@ -25,7 +24,7 @@ beforeAll(function(done){
         lazy: true,
         filename: "[name].js",
         after: function(app, server){
-            localHttpMock.bindWebpack(app, server || this, {
+            app.use(httpMockMiddleware({
                 mockRules: {
                     "/": mockDirectoryPrefix,
                     "/ws": {
@@ -34,6 +33,7 @@ beforeAll(function(done){
                     }
                 },
                 websocket: {
+                    server: server || this,
                     // send base64
                     encodeMessage: function(error, msg){
                         if(error) {
@@ -49,22 +49,21 @@ beforeAll(function(done){
                         return "/" + msg.type + "/" + msg.method;
                     }
                 }
-            });
+            }));
         }
     });
     devServer.listen(18080, "127.0.0.1", done);
 });
 afterAll(function(done){
-    rimraf.sync(mockDirectoryPrefix);
     devServer.close(() => done());
 });
 
 describe("webpack test", function(){
     test("http works well", function(){
-        let data = "hello local-http-mock";
-        mockFile("/hello/local-http-mock", data);
+        let data = "hello http-mock-middleware";
+        mockFile("/hello/http-mock-middleware", data);
         return expect(
-            axios.get("http://127.0.0.1:18080/hello/local-http-mock").then(resp => resp.data)
+            axios.get("http://127.0.0.1:18080/hello/http-mock-middleware").then(resp => resp.data)
         ).resolves.toBe(data);
     });
     test("websocket works well", function(done){

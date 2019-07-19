@@ -1,13 +1,9 @@
 const MockFileManager = require("../MockFileManager");
-const rimraf = require("rimraf");
 const isIP = require("is-ip");
+const { setup } = require("./utils");
 
 const mockDirectoryPrefix = "tests/.data/MockFileManager";
-const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
-
-afterAll(function(){
-    rimraf.sync(mockDirectoryPrefix);
-});
+const mockFile = setup(mockDirectoryPrefix);
 
 describe("find mock file:", function(){
     // [number]
@@ -21,6 +17,32 @@ describe("find mock file:", function(){
         let filepath = mockFile("/number2/[number]/test", "");
         return expect(
             MockFileManager.find("GET", "/number2/123/test", mockDirectoryPrefix)
+        ).resolves.toBe(filepath);
+    });
+    // [date]
+    test("not map directory '2019-03-10' to '[date]' if '2019-03-10' exists", function(){
+        let filepath = mockFile("/date1/2019-03-10/test", "");
+        return expect(
+            MockFileManager.find("GET", "/date1/2019-03-10/test", mockDirectoryPrefix)
+        ).resolves.toBe(filepath);
+    });
+    test("map directory '2019-03-10' to '[date]' if '2019-03-10' not exists", function(){
+        let filepath = mockFile("/date2/[date]/test", "");
+        return expect(
+            MockFileManager.find("GET", "/date2/2019-03-10/test", mockDirectoryPrefix)
+        ).resolves.toBe(filepath);
+    });
+    // [time]
+    test("not map directory '11:20:11' to '[time]' if '2019-03-10' exists", function(){
+        let filepath = mockFile("/time1/11:20:11/test", "");
+        return expect(
+            MockFileManager.find("GET", "/time1/11:20:11/test", mockDirectoryPrefix)
+        ).resolves.toBe(filepath);
+    });
+    test("map directory '11:20:11' to '[time]' if '11:20:11' not exists", function(){
+        let filepath = mockFile("/time2/[time]/test", "");
+        return expect(
+            MockFileManager.find("GET", "/time2/11:20:11/test", mockDirectoryPrefix)
         ).resolves.toBe(filepath);
     });
     // [email]

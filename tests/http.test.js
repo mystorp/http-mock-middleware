@@ -1,43 +1,24 @@
-const fs = require("fs");
-const express = require("express");
-const axios = require("axios").create();
-const localHttpMock = require("../");
-const rimraf = require("rimraf");
-
 const mockDirectoryPrefix = "tests/.data/http";
-const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
-
-afterAll(function(){
-    rimraf.sync(mockDirectoryPrefix);
-});
+const { setup, createServer } = require("./utils");
+const mockFile = setup(mockDirectoryPrefix);
 
 describe("http mock test", function(){
-    let currentApp, currentServer, currentBaseUrl;
-    beforeAll(function(done){
-        currentApp = express();
-        currentApp.use(localHttpMock({
+    let axios, server;
+    beforeAll(function(done) {
+        createServer({
             mockRules: {
                 "/mock": mockDirectoryPrefix,
                 "/mock/v2": mockDirectoryPrefix + "/tmp",
                 "/directive": mockDirectoryPrefix
             }
-        }));
-        axios.interceptors.request.use(function(config){
-            config.url = currentBaseUrl + config.url;
-            return config;
-        });
-        currentServer = currentApp.listen(function(){
-            let addr = currentServer.address();
-            currentBaseUrl = "http://127.0.0.1:" + addr.port;
+        }, function(args){
+            ({axios, server} = args);
             done();
         });
     });
-    
     afterAll(function(){
-        currentServer.close();
-        currentApp = currentServer = currentBaseUrl = null;
+        server.close();
     });
-
     
     test("ignore request if request url is '/'", function(){
         return expect(

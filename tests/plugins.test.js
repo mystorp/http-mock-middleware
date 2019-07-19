@@ -3,14 +3,11 @@ const notifyPlugin = require("../plugins/ws-notify");
 const varExpansionPlugin = require("../plugins/var-expansion");
 const cookiePlugin = require("../plugins/cookies");
 const headerPlugin = require("../plugins/headers");
-const rimraf = require("rimraf");
+const { setup } = require("./utils");
 
 const mockDirectoryPrefix = "tests/.data/plugins";
-const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
+setup(mockDirectoryPrefix);
 
-afterAll(function(){
-    rimraf.sync(mockDirectoryPrefix);
-});
 describe("test if plugin", function(){
     let context = {
         "#if:query.x == 'a'#": {

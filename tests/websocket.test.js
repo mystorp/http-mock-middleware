@@ -1,69 +1,58 @@
-const fs = require("fs");
-const express = require("express");
-const localHttpMock = require("../");
 const WebSocket = require("ws");
-const rimraf = require("rimraf");
 const isPlainObject = require("is-plain-object");
-
+const { setup, createServer } = require("./utils");
 const mockDirectoryPrefix = "tests/.data/websocket";
-const mockFile = require("./utils").mockFile.bind(this, mockDirectoryPrefix);
+const mockFile = setup(mockDirectoryPrefix);
 
-afterAll(function(){
-    rimraf.sync(mockDirectoryPrefix);
-});
 
 describe("websocket mock test", function(){
-    let currentApp, currentServer, currentBaseUrl;
+    let server, baseurl;
     let setupSocketIsCalled = false;
     beforeAll(function(done){
-        currentApp = express();
-        currentServer = currentApp.listen(function(){
-            let addr = currentServer.address();
-            currentBaseUrl = "ws://127.0.0.1:" + addr.port;
-            currentApp.use(localHttpMock({
-                mockRules: {
-                    "/ws": {
-                        type: "websocket",
-                        dir: mockDirectoryPrefix
-                    }
-                },
-                server: currentServer,
-                websocket: {
-                    setupSocket: function(){
-                        setupSocketIsCalled = true;
-                    },
-                    // send base64
-                    encodeMessage: function(error, msg){
-                        if(error) {
-                            msg = Buffer.from("Error: " + error.message);
-                        } else {
-							if(isPlainObject(msg)) {
-	                            msg = Buffer.from(JSON.stringify(msg));
-							} else if(!Buffer.isBuffer(msg)) {
-								msg = new Buffer(msg);
-							}
-                        }
-                        return msg.toString("base64");
-                    },
-                    // receive json
-                    decodeMessage: function(msg){
-                        msg = JSON.parse(msg);
-                        msg.url = `/${msg.type}/${msg.method}`;
-                        return msg;
-                    }
+        createServer({
+            mockRules: {
+                "/ws": {
+                    type: "websocket",
+                    dir: mockDirectoryPrefix
                 }
-            }));
+            },
+            websocket: {
+                setupSocket: function(){
+                    setupSocketIsCalled = true;
+                },
+                // send base64
+                encodeMessage: function(error, msg){
+                    if(error) {
+                        msg = Buffer.from("Error: " + error.message);
+                    } else {
+                        if(isPlainObject(msg)) {
+                            msg = Buffer.from(JSON.stringify(msg));
+                        } else if(!Buffer.isBuffer(msg)) {
+                            msg = new Buffer(msg);
+                        }
+                    }
+                    return msg.toString("base64");
+                },
+                // receive json
+                decodeMessage: function(msg){
+                    msg = JSON.parse(msg);
+                    msg.url = `/${msg.type}/${msg.method}`;
+                    return msg;
+                }
+            }
+        }, function(args){
+            ({axios, server} = args);
+            baseurl = "ws://" + args.host + ":" + args.port;
             done();
         });
     });
     
     afterAll(function(){
-        currentServer.close();
-        currentApp = currentServer = currentBaseUrl = null;
+        server.close();
     });
 
     test("setupSocket option will be called", function(done){
-        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let socket = new WebSocket(baseurl + "/ws");
         let msg = JSON.stringify({aa: 32, hello: "world!"});
         socket.on("open", function(){
             mockFile("/file/my1.json", msg);
@@ -77,7 +66,7 @@ describe("websocket mock test", function(){
     });
 
     test("mock json file will read and parse", function(done){
-        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let socket = new WebSocket(baseurl + "/ws");
         let msg = JSON.stringify({aa: 32, hello: "world!"});
         socket.on("open", function(){
             mockFile("/file/my1.json", msg);
@@ -90,7 +79,7 @@ describe("websocket mock test", function(){
         });
     });
     test("mock json file support #delay# directive", function(done){
-        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let socket = new WebSocket(baseurl + "/ws");
         let msg = JSON.stringify({"#delay#": 1000, hello: "world!"});
         let start;
         socket.on("open", function(){
@@ -105,7 +94,7 @@ describe("websocket mock test", function(){
         });
     });
     test("mock invalid json file will throw", function(done){
-        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let socket = new WebSocket(baseurl + "/ws");
         let msg = "invalid json";
         socket.on("open", function(){
             mockFile("/file/my3.json", msg);
@@ -118,7 +107,7 @@ describe("websocket mock test", function(){
         });
     });
     test("mock valid file will work", function(done){
-        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let socket = new WebSocket(baseurl + "/ws");
         let msg = "valid file";
         socket.on("open", function(){
             mockFile("/file/data", msg);
@@ -131,7 +120,7 @@ describe("websocket mock test", function(){
         });
     });
     test("mock file missing will fail", function(done){
-        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let socket = new WebSocket(baseurl + "/ws");
         socket.on("open", function(){
             socket.send(JSON.stringify({type: "file", method: "missing"}));
         });
@@ -142,14 +131,14 @@ describe("websocket mock test", function(){
         });
     });
     test("invalid websocket path will fail", function(done){
-        let socket = new WebSocket(currentBaseUrl + "/wsx");
+        let socket = new WebSocket(baseurl + "/wsx");
         socket.on("error", function(e) {
             expect(e.message).toBe("socket hang up");
             done();
         });
     });
     test("websocket support #notify#", function(done){
-        let socket = new WebSocket(currentBaseUrl + "/ws");
+        let socket = new WebSocket(baseurl + "/ws");
         let i = 0, notifyStart;
         socket.on("open", function(){
             mockFile("/file/notify1.json", JSON.stringify({
