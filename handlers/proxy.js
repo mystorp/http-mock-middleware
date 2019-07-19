@@ -11,7 +11,13 @@ const sanitize = require("sanitize-filename");
  */
 module.exports = function(req, resp, options, next){
     if(req.url === "/") { return next(); }
-    let newUrl = req.get("X-Mock-Proxy") + req.url;
+    let proxy = req.get("X-Mock-Proxy"), newUrl;
+    if(/^https?:/.test(proxy)) {
+        proxy = proxy.replace(/\/+$/, "");
+        newUrl = proxy + req.url;
+    } else {
+        newUrl = req.protocol + "://" + proxy + req.url;
+    }
     let urlParts = url.parse(newUrl);
     let headers = req.headers;
     headers.host = urlParts.host;
