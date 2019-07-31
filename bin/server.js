@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require("fs");
-const _readFile = (f) => fs.readFileSync(f);
+const _readFile = (f) => f && fs.existsSync(f) ? fs.readFileSync(f) : null;
 const argv = require("yargs").usage("http-mock-server [Options]").options({
     port: {
         alias: "p",
