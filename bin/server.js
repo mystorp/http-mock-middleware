@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require("fs");
+const path = require("path");
 const _readFile = (f) => f && fs.existsSync(f) ? fs.readFileSync(f) : null;
 const argv = require("yargs").usage("http-mock-server [Options]").options({
     port: {
@@ -54,7 +55,8 @@ const argv = require("yargs").usage("http-mock-server [Options]").options({
     "websocket-options": {
         alias: "x",
         default: "./websocket.options.js",
-        describe: "Websocket options file"
+        describe: "Websocket options file",
+        coerce: (v) => path.resolve(v)
     }
 }).argv;
 const portfinder = require("portfinder");
