@@ -15,7 +15,6 @@ const argv = require("yargs").usage("http-mock-server [Options]").options({
     },
     dir: {
         alias: "d",
-        default: ".data",
         describe: "Root directory that mock data is served from"
     },
     ssl: {
@@ -45,6 +44,17 @@ const argv = require("yargs").usage("http-mock-server [Options]").options({
         array: true,
         default: ["."],
         describe: "Base path of any other static files"
+    },
+    websocket: {
+        alias: "w",
+        boolean: true,
+        default: false,
+        describe: "Enable websocket"
+    },
+    websocketOptions: {
+        alias: "x",
+        default: "./websocket.options.js",
+        describe: "Websocket options file"
     }
 }).argv;
 const portfinder = require("portfinder");
@@ -54,24 +64,25 @@ startServer(argv);
 function startServer(options){
     const express = require("express");
     const httpMockMiddleware = require("..");
+    let middlewareOptions;
+    try {
+        middlewareOptions = getMiddlewareOptions(options);
+    } catch(e) {
+        console.log(e.message);
+        return;
+    }
+    const server = createServer(options);
     const app = express();
     options.static.forEach(staticDir => {
         console.log("static files is served from:", staticDir);
         app.use(express.static(staticDir));
     });
-    console.log("mock file directory:", options.dir);
-    app.use("/", httpMockMiddleware({
-        mockRules: {"/": options.dir}
-    }));
-    const mod = require(options.ssl ? "https" : "http");
-    const serverOptions = options.ssl ? {
-        cert: options.cert,
-        key: options.key,
-        passphrase: options.passphrase
-    } : null;
-    const server = options.ssl
-        ? mod.createServer(serverOptions, app)
-        : mod.createServer(app);
+    if(middlewareOptions.websocket) {
+        middlewareOptions.websocket.server = server;
+    }
+    console.log("mock rules:", middlewareOptions.mockRules);
+    app.use("/", httpMockMiddleware(middlewareOptions));
+    server.on("request", app);
     portfinder.getPort({port: options.port}, function(error, port){
         if(error) {
             throw error;
@@ -82,6 +93,37 @@ function startServer(options){
             showAddresses(options);
         });
     });
+}
+
+function getMiddlewareOptions(options) {
+    let hasRc = fs.existsSync("./mockrc.json");
+    let mockRules;
+    try {
+        mockRules = JSON.parse(fs.readFileSync("./mockrc.json", "utf-8"));
+    } catch(e) {
+        if(options.websocket) {
+            throw e;
+        }
+    }
+    if(options.dir && options.websocket) {
+        console.error(`websocket enabled, so "./mockrc.json" takes precedence over "--dir ${options.dir}"`);
+    }
+    if(options.websocket) {
+        return {websocket: require(options.websocketOptions), mockRules};
+    }
+    if(hasRc && !options.dir) { return {mockRules}; }
+    mockRules = {"/": options.dir || ".data"};
+    return {mockRules};
+}
+
+function createServer(options){
+    const mod = require(options.ssl ? "https" : "http");
+    const serverOptions = options.ssl ? {
+        cert: options.cert,
+        key: options.key,
+        passphrase: options.passphrase
+    } : null;
+    return options.ssl ? mod.createServer(serverOptions) : mod.createServer();
 }
 
 function showAddresses(options){
