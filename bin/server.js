@@ -39,6 +39,12 @@ const argv = require("yargs").usage("http-mock-server [Options]").options({
     passphrase: {
         alias: "p",
         describe: "Passphrase of private key"
+    },
+    static: {
+        alias: "s",
+        array: true,
+        default: ["."],
+        describe: "Base path of any other static files"
     }
 }).argv;
 const portfinder = require("portfinder");
@@ -49,17 +55,23 @@ function startServer(options){
     const express = require("express");
     const httpMockMiddleware = require("..");
     const app = express();
+    options.static.forEach(staticDir => {
+        console.log("static files is served from:", staticDir);
+        app.use(express.static(staticDir));
+    });
+    console.log("mock file directory:", options.dir);
     app.use("/", httpMockMiddleware({
         mockRules: {"/": options.dir}
     }));
+    const mod = require(options.ssl ? "https" : "http");
     const serverOptions = options.ssl ? {
         cert: options.cert,
         key: options.key,
         passphrase: options.passphrase
-    } : {};
-    const server = require(
-        options.ssl ? "https" : "http"
-    ).createServer(serverOptions, app);
+    } : null;
+    const server = options.ssl
+        ? mod.createServer(serverOptions, app)
+        : mod.createServer(app);
     portfinder.getPort({port: options.port}, function(error, port){
         if(error) {
             throw error;
