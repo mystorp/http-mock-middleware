@@ -93,7 +93,7 @@ describe("websocket mock test", function(){
             done();
         });
     });
-    test("mock invalid json file will throw", function(done){
+    test("mock invalid json file will receive Buffer", function(done){
         let socket = new WebSocket(baseurl + "/ws");
         let msg = "invalid json";
         socket.on("open", function(){
@@ -101,7 +101,7 @@ describe("websocket mock test", function(){
             socket.send(JSON.stringify({type: "file", method: "my3"}));
         });
         socket.on("message", function(e){
-            expect(Buffer.from(e, "base64").toString()).toMatch(/^Error: /);
+            expect(Buffer.from(e, "base64").toString()).toBe(msg);
             socket.close();
             done();
         });

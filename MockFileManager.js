@@ -96,9 +96,9 @@ class MockFileFinder {
         }
         context.mockFile = file;
         return readFileAsync(file).then((buf) => {
-            if(/\.json5?(\.[a-z0-9]+)?/i.test(file)) {
+            try {
                 return json5.parse(buf.toString());
-            } else {
+            } catch(e) {
                 return buf;
             }
         }).then(data => {
