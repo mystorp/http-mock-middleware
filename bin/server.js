@@ -51,7 +51,7 @@ const argv = require("yargs").usage("http-mock-server [Options]").options({
         default: false,
         describe: "Enable websocket"
     },
-    websocketOptions: {
+    "websocket-options": {
         alias: "x",
         default: "./websocket.options.js",
         describe: "Websocket options file"
