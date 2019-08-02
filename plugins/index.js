@@ -12,7 +12,8 @@ const plugins = [
     require("./delay"),
     require("./status-code"),
     require("./ws-notify"),
-    require("./mock")
+    require("./mock"),
+    require("./jsonp")
 ];
 exports.run = runPlugins;
 

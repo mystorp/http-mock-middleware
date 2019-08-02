@@ -6,6 +6,7 @@ describe("http mock test", function(){
     let axios, server;
     beforeAll(function(done) {
         createServer({
+            jsonpCallbackName: "callback",
             mockRules: {
                 "/mock": mockDirectoryPrefix,
                 "/mock/v2": mockDirectoryPrefix + "/tmp",
@@ -48,11 +49,11 @@ describe("http mock test", function(){
             axios.get("/mock/v2/who").then(resp => resp.data.from)
         ).resolves.toBe(2);
     });
-    test("invalid json will receive 500", function(){
+    test("invalid json will receive Buffer", function(){
         mockFile("/mock/invalid.json", "xx");
         return expect(
-            axios.get("/mock/invalid").catch(e => Promise.reject(e.response.status))
-        ).rejects.toBe(500);
+            axios.get("/mock/invalid").then(resp => resp.data)
+        ).resolves.toBe("xx");
     });
     test("can serve non json mock file", function(){
         let data = "hello, world!";
@@ -80,5 +81,11 @@ describe("http mock test", function(){
         return expect(
             axios.get("/directive/code").catch(e => e.response.status)
         ).resolves.toBe(408);
+    });
+    test("support jsonp", function(){
+        mockFile("/mock/jsonp.json", 'true');
+        return expect(
+            axios.get("/mock/jsonp?callback=jQueryxxx322332").then(resp => resp.data)
+        ).resolves.toBe("jQueryxxx322332(true)");
     });
 });

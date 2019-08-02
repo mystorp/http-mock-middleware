@@ -24,6 +24,7 @@
     * [status code](#plugin-status-code)
     * [ws-notify](#plugin-ws-notify)
     * [mockjs](#plugin-mockjs)
+    * [jsonp](#plugin-jsonp)
   * [websocket](#websocket)
   * [动态后端代理](#proxy)
 * [FAQ](#faq)
@@ -44,7 +45,7 @@ http-mock-middleware 本身导出为一个兼容 express middleware 的函数，
 
 ## 特性
 
-* 支持任意 http 方法和任意 url 格式
+* 支持任意 http 方法和任意 url 格式，支持 jsonp
 * 支持 mock 任意文件
 * mock json 文件时，支持 [mockjs](http://mockjs.com/examples.html) 语法,  [json5](https://json5.org/) 语法
 * mock json 文件时，支持根据 query, body, headers, cookie 等信息按需响应
@@ -80,6 +81,8 @@ npm i -g hm-middleware
 返回：兼容 express middleware 的函数，它接收 `(request, response, next)` 3 个参数。
 
 * `options` 初始化选项
+  * `auto404` 如果查找不到 mock 文件，是否自动设置 http 响应码为 404，默认为 true，如果你需要捕获未处理的请求，设置为 false
+  * `jsonpCallbackName` 如果启用 jsonp 支持，此选项设置 jsonp 参数名
   * `.mockRules` mock 规则，如果指定了此选项，则忽略 mockrc.json，写法参考 [mockrc.json](#mockrc-json)
   * `.cors` 是否跨域，默认为 true。也可以是一个 [cors middleware 接受的配置对象](https://github.com/expressjs/cors#configuration-options)
   * `.parseBody` 是否解析请求 body，默认为 true。也可以是一个 [body-parser 接受的配置对象](https://github.com/expressjs/body-parser)
@@ -223,7 +226,7 @@ http-mock-middleware 支持下面的模糊匹配：
 GET /groups/23/user/11/score
 优先匹配的文件名是：get-score
 ```
-文件名后缀并不作为判断依据，如果一个 url 同时匹配了几个文件，除了请求方法为前缀的文件外，其它文件的优先级是一样的，谁是第一个优先使用谁，不过这种情况应该很少，不需要考虑。
+文件名后缀并不作为判断依据，如果一个 url 同时匹配了几个文件，除了请求方法为前缀的文件外，其它文件的优先级是一样的，谁是第一个优先使用谁，不过这种情况应该很少，暂时不需要考虑。
 
 上面就是收到 http 请求时的匹配过程， websocket 的匹配过程基本一致，但与 http 不同的是，websocket 并不存在 url 一说，当我们收到 onmessage 事件时，我们收到的可能是任意格式的数据，它们不是 url，因此在 http-mock-middleware 初始化时提供了将收到的数据转换为 url 的选项：
 ```javascript
@@ -415,6 +418,12 @@ ws-notify 插件的主要功能是经过固定延迟时间后主动发起一个�
 #### mockjs 插件
 
 mockjs 插件的主要功能是为 json 内容提供数据模拟支持，mockjs 的语法请参考[这里](http://mockjs.com/examples.html)
+
+<a name="plugin-jsonp"></a>
+
+#### jsonp 插件
+
+jsonp 插件的主要功能是检测当前请求是否为 jsonp 请求，如果是则返回 jsonp 包装后的结果
 
 <a name="websocket"></a>
 
